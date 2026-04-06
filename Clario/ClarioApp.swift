@@ -21,7 +21,7 @@ struct ClarioApp: App {
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            fatalError(AppLanguageStore.shared.localizedFormat("fatalerror.model_container", error.localizedDescription as NSString))
         }
     }()
 

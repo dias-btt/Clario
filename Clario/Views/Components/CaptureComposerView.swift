@@ -3,16 +3,17 @@ import SwiftUI
 
 struct CaptureComposerView: View {
     @Bindable var viewModel: BrainCaptureViewModel
+    @Bindable private var languageStore = AppLanguageStore.shared
     let onSubmit: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Second Brain")
+                    Text(languageStore.localized("composer.title"))
                         .font(.system(.largeTitle, design: .rounded, weight: .bold))
 
-                    Text("Dump a thought. We’ll structure it instantly.")
+                    Text(languageStore.localized("composer.subtitle"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -28,7 +29,7 @@ struct CaptureComposerView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
-                .accessibilityLabel("Voice input coming soon")
+                .accessibilityLabel(languageStore.localized("composer.voice_a11y"))
             }
 
             ZStack(alignment: .topLeading) {
@@ -48,7 +49,7 @@ struct CaptureComposerView: View {
                     .background(Color.clear)
 
                 if viewModel.inputText.isEmpty {
-                    Text("What’s on your mind?")
+                    Text(languageStore.localized("composer.placeholder"))
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 21)
@@ -63,7 +64,7 @@ struct CaptureComposerView: View {
                         ProgressView()
                             .controlSize(.small)
 
-                        Text("Organizing...")
+                        Text(languageStore.localized("composer.organizing"))
                             .font(.footnote.weight(.semibold))
                     }
                     .padding(.horizontal, 12)
@@ -92,7 +93,7 @@ struct CaptureComposerView: View {
 
                 Button(action: onSubmit) {
                     HStack(spacing: 8) {
-                        Text(viewModel.isProcessing ? "Thinking" : "Capture")
+                        Text(viewModel.isProcessing ? languageStore.localized("composer.thinking") : languageStore.localized("composer.capture"))
                         Image(systemName: "arrow.up.circle.fill")
                     }
                     .font(.headline)

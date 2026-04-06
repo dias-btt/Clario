@@ -1,0 +1,64 @@
+/* Tab bar */
+"tab.tasks" = "Задачи";
+"tab.ideas" = "Идеи";
+"tab.notes" = "Заметки";
+
+/* ContentView */
+"accessibility.new_capture" = "Новая запись";
+"accessibility.language_menu" = "Выбор языка";
+"button.close" = "Закрыть";
+
+/* Tasks */
+"tasks.screen.title" = "Задачи";
+"tasks.screen.subtitle_open" = "%lld открыто";
+"tasks.empty.title" = "Пока нечего делать";
+"tasks.empty.message" = "Запишите мысль выше — задачи появятся здесь автоматически.";
+"tasks.section.today" = "Сегодня";
+"tasks.section.today_subtitle" = "Без перегруза";
+"tasks.section.next_up" = "Далее";
+"tasks.section.next_up_subtitle" = "В очереди";
+"tasks.section.done" = "Готово";
+"tasks.section.done_subtitle" = "Отличный прогресс";
+
+/* Notes */
+"notes.screen.title" = "Заметки";
+"notes.screen.subtitle_stored" = "%lld сохранено";
+"notes.empty.title" = "Пустая страница";
+"notes.empty.message" = "Общие мысли, которые не задачи и не идеи, появятся здесь аккуратным списком.";
+
+/* Ideas */
+"ideas.screen.title" = "Идеи";
+"ideas.screen.subtitle_captured" = "%lld зафиксировано";
+"ideas.empty.title" = "Пока без идей";
+"ideas.empty.message" = "Идеи из потока сознания окажутся здесь карточками, к которым захочется вернуться.";
+
+/* Composer */
+"composer.title" = "Второй мозг";
+"composer.subtitle" = "Выплесните мысль — мы сразу её структурируем.";
+"composer.voice_a11y" = "Голосовой ввод скоро";
+"composer.placeholder" = "О чём думаете?";
+"composer.organizing" = "Расставляем по полочкам...";
+"composer.capture" = "Записать";
+"composer.thinking" = "Думаем...";
+
+/* Cards */
+"card.badge.idea" = "Идея";
+"task.schedule.today" = "Сегодня";
+"task.schedule.later" = "Позже";
+
+/* AI errors */
+"ai.error.missing_api_key" = "Ключ OpenAI API не найден. Добавьте OPENAI_API_KEY в переменные окружения или Info.plist.";
+"ai.error.invalid_response" = "OpenAI вернул неожиданный ответ.";
+"ai.error.network" = "Ошибка сети: %@";
+"ai.error.request_failed_detail" = "Ошибка OpenAI %d: %@";
+"ai.error.request_failed_status" = "Запрос к OpenAI завершился со статусом %d.";
+"ai.error.malformed_json" = "Не удалось разобрать JSON ответа AI.";
+
+/* Preview */
+"preview.task1" = "Отправить команде обновление продукта";
+"preview.task2" = "Проверить тексты онбординга";
+"preview.idea1" = "Превратить мимолётные мысли в ежедневную карточку.";
+"preview.note1" = "Пользователи должны почувствовать облегчение, как только выложат мысль из головы.";
+
+/* Fatal errors (dev) */
+"fatalerror.model_container" = "Не удалось создать ModelContainer: %@";

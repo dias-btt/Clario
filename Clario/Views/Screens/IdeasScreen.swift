@@ -3,6 +3,7 @@ import SwiftData
 
 struct IdeasScreen: View {
     @Environment(\.modelContext) private var modelContext
+    @Bindable private var languageStore = AppLanguageStore.shared
     @Query(sort: \IdeaItem.createdAt, order: .reverse) private var ideas: [IdeaItem]
 
     private let columns = [
@@ -14,14 +15,14 @@ struct IdeasScreen: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 SectionHeaderView(
-                    title: "Ideas",
-                    subtitle: "\(ideas.count) captured"
+                    title: languageStore.localized("ideas.screen.title"),
+                    subtitle: languageStore.localizedFormat("ideas.screen.subtitle_captured", Int64(ideas.count))
                 )
 
                 if ideas.isEmpty {
                     EmptyStateView(
-                        title: "No sparks yet",
-                        message: "Ideas from your brain dumps will land here as little cards worth revisiting.",
+                        title: languageStore.localized("ideas.empty.title"),
+                        message: languageStore.localized("ideas.empty.message"),
                         systemImage: "lightbulb.max"
                     )
                 } else {

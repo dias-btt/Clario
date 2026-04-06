@@ -20,21 +20,22 @@ enum AIServiceError: LocalizedError {
     case malformedJSON
 
     var errorDescription: String? {
+        let l = AppLanguageStore.shared
         switch self {
         case .missingAPIKey:
-            return "OpenAI API key не найден. Добавьте `OPENAI_API_KEY` в environment variables или `Info.plist`."
+            return l.localized("ai.error.missing_api_key")
         case .invalidResponse:
-            return "OpenAI вернул неожиданный ответ."
+            return l.localized("ai.error.invalid_response")
         case let .network(error):
-            return "Ошибка сети: \(error.localizedDescription)"
+            return l.localizedFormat("ai.error.network", error.localizedDescription as NSString)
         case let .requestFailed(statusCode, message):
             if let message, !message.isEmpty {
-                return "OpenAI error \(statusCode): \(message)"
+                return l.localizedFormat("ai.error.request_failed_detail", statusCode, message as NSString)
             }
 
-            return "OpenAI request failed with status \(statusCode)."
+            return l.localizedFormat("ai.error.request_failed_status", statusCode)
         case .malformedJSON:
-            return "Не удалось распарсить JSON от AI."
+            return l.localized("ai.error.malformed_json")
         }
     }
 }

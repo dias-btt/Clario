@@ -16,10 +16,10 @@ enum PreviewSampleData {
 
             let context = container.mainContext
 
-            context.insert(TaskItem(title: "Send product update to team", isToday: true))
-            context.insert(TaskItem(title: "Review onboarding copy", isCompleted: true, createdAt: .now.addingTimeInterval(-3600)))
-            context.insert(IdeaItem(content: "Turn fleeting thoughts into a daily recap card."))
-            context.insert(NoteItem(content: "Users should feel relief the moment they brain-dump something."))
+            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task1"), isToday: true))
+            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task2"), isCompleted: true, createdAt: .now.addingTimeInterval(-3600)))
+            context.insert(IdeaItem(content: AppLanguageStore.shared.localized("preview.idea1")))
+            context.insert(NoteItem(content: AppLanguageStore.shared.localized("preview.note1")))
 
             return container
         } catch {

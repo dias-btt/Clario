@@ -1,0 +1,64 @@
+/* Tab bar */
+"tab.tasks" = "Тапсырмалар";
+"tab.ideas" = "Идеялар";
+"tab.notes" = "Ескертулер";
+
+/* ContentView */
+"accessibility.new_capture" = "Жаңа жазба";
+"accessibility.language_menu" = "Тіл таңдау";
+"button.close" = "Жабу";
+
+/* Tasks */
+"tasks.screen.title" = "Тапсырмалар";
+"tasks.screen.subtitle_open" = "%lld ашық";
+"tasks.empty.title" = "Әлі іс жоқ";
+"tasks.empty.message" = "Жоғарыдан ой жазыңыз — тапсырмалар мұнда автоматты түрде пайда болады.";
+"tasks.section.today" = "Бүгін";
+"tasks.section.today_subtitle" = "Жеңіл ұстаңыз";
+"tasks.section.next_up" = "Келесі";
+"tasks.section.next_up_subtitle" = "Кезекте";
+"tasks.section.done" = "Дайын";
+"tasks.section.done_subtitle" = "Керемет алға жылжу";
+
+/* Notes */
+"notes.screen.title" = "Ескертулер";
+"notes.screen.subtitle_stored" = "%lld сақталған";
+"notes.empty.title" = "Тыныш бет";
+"notes.empty.message" = "Тапсырма да, идея да емес жалпы ойлар мұнда тәртіппен көрінеді.";
+
+/* Ideas */
+"ideas.screen.title" = "Идеялар";
+"ideas.screen.subtitle_captured" = "%lld жазылған";
+"ideas.empty.title" = "Әлі ұшқын жоқ";
+"ideas.empty.message" = "Ой ағынындағы идеялар осында кіші карточкалар ретінде пайда болады.";
+
+/* Composer */
+"composer.title" = "Екінші ми";
+"composer.subtitle" = "Ойды шығарыңыз — бірден құрылымдаймыз.";
+"composer.voice_a11y" = "Дыбыс енгізу жақында";
+"composer.placeholder" = "Не ойлайсыз?";
+"composer.organizing" = "Құрып жатырмыз...";
+"composer.capture" = "Жазу";
+"composer.thinking" = "Ойлануда...";
+
+/* Cards */
+"card.badge.idea" = "Идея";
+"task.schedule.today" = "Бүгін";
+"task.schedule.later" = "Кейінірек";
+
+/* AI errors */
+"ai.error.missing_api_key" = "OpenAI API кілті табылмады. OPENAI_API_KEY айнымалысын немесе Info.plist қосыңыз.";
+"ai.error.invalid_response" = "OpenAI күтпеген жауап қайтарды.";
+"ai.error.network" = "Желі қатесі: %@";
+"ai.error.request_failed_detail" = "OpenAI қатесі %d: %@";
+"ai.error.request_failed_status" = "OpenAI сұрауы %d күйімен аяқталды.";
+"ai.error.malformed_json" = "AI жауабын JSON ретінде талдау мүмкін болмады.";
+
+/* Preview */
+"preview.task1" = "Командаға өнім жаңартуын жіберу";
+"preview.task2" = "Онбординг мәтіндерін қарау";
+"preview.idea1" = "Ұшқын ойларды күнделікті карточкаға айналдыру.";
+"preview.note1" = "Пайдаланушылар ойын тастаған сәтте жеңілдек сезінуі керек.";
+
+/* Fatal errors (dev) */
+"fatalerror.model_container" = "ModelContainer құру мүмкін болмады: %@";

@@ -1,0 +1,64 @@
+/* Tab bar */
+"tab.tasks" = "Tasks";
+"tab.ideas" = "Ideas";
+"tab.notes" = "Notes";
+
+/* ContentView */
+"accessibility.new_capture" = "New capture";
+"accessibility.language_menu" = "Choose language";
+"button.close" = "Close";
+
+/* Tasks */
+"tasks.screen.title" = "Tasks";
+"tasks.screen.subtitle_open" = "%lld open";
+"tasks.empty.title" = "Nothing actionable yet";
+"tasks.empty.message" = "Capture a thought above and tasks will appear here automatically.";
+"tasks.section.today" = "Today";
+"tasks.section.today_subtitle" = "Keep it light";
+"tasks.section.next_up" = "Next Up";
+"tasks.section.next_up_subtitle" = "Queued thoughts";
+"tasks.section.done" = "Done";
+"tasks.section.done_subtitle" = "Nice momentum";
+
+/* Notes */
+"notes.screen.title" = "Notes";
+"notes.screen.subtitle_stored" = "%lld stored";
+"notes.empty.title" = "A quiet page";
+"notes.empty.message" = "General thoughts that aren't tasks or ideas will show up here with clean, readable spacing.";
+
+/* Ideas */
+"ideas.screen.title" = "Ideas";
+"ideas.screen.subtitle_captured" = "%lld captured";
+"ideas.empty.title" = "No sparks yet";
+"ideas.empty.message" = "Ideas from your brain dumps will land here as little cards worth revisiting.";
+
+/* Composer */
+"composer.title" = "Second Brain";
+"composer.subtitle" = "Dump a thought. We'll structure it instantly.";
+"composer.voice_a11y" = "Voice input coming soon";
+"composer.placeholder" = "What's on your mind?";
+"composer.organizing" = "Organizing...";
+"composer.capture" = "Capture";
+"composer.thinking" = "Thinking";
+
+/* Cards */
+"card.badge.idea" = "Idea";
+"task.schedule.today" = "Today";
+"task.schedule.later" = "Later";
+
+/* AI errors */
+"ai.error.missing_api_key" = "Add your OpenAI API key in environment variables or Info.plist as OPENAI_API_KEY.";
+"ai.error.invalid_response" = "OpenAI returned an unexpected response.";
+"ai.error.network" = "Network error: %@";
+"ai.error.request_failed_detail" = "OpenAI error %d: %@";
+"ai.error.request_failed_status" = "OpenAI request failed with status %d.";
+"ai.error.malformed_json" = "Couldn't parse the AI response as JSON.";
+
+/* Preview */
+"preview.task1" = "Send product update to team";
+"preview.task2" = "Review onboarding copy";
+"preview.idea1" = "Turn fleeting thoughts into a daily recap card.";
+"preview.note1" = "Users should feel relief the moment they brain-dump something.";
+
+/* Fatal errors (dev) */
+"fatalerror.model_container" = "Could not create ModelContainer: %@";

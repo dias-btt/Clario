@@ -3,6 +3,7 @@ import SwiftData
 
 struct TasksScreen: View {
     @Environment(\.modelContext) private var modelContext
+    @Bindable private var languageStore = AppLanguageStore.shared
     @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasks: [TaskItem]
 
     private var todayTasks: [TaskItem] {
@@ -21,27 +22,42 @@ struct TasksScreen: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
                 SectionHeaderView(
-                    title: "Tasks",
-                    subtitle: "\(tasks.filter { !$0.isCompleted }.count) open"
+                    title: languageStore.localized("tasks.screen.title"),
+                    subtitle: languageStore.localizedFormat(
+                        "tasks.screen.subtitle_open",
+                        Int64(tasks.filter { !$0.isCompleted }.count)
+                    )
                 )
 
                 if tasks.isEmpty {
                     EmptyStateView(
-                        title: "Nothing actionable yet",
-                        message: "Capture a thought above and tasks will appear here automatically.",
+                        title: languageStore.localized("tasks.empty.title"),
+                        message: languageStore.localized("tasks.empty.message"),
                         systemImage: "checklist.checked"
                     )
                 } else {
                     if !todayTasks.isEmpty {
-                        taskSection(title: "Today", subtitle: "Keep it light", tasks: todayTasks)
+                        taskSection(
+                            title: languageStore.localized("tasks.section.today"),
+                            subtitle: languageStore.localized("tasks.section.today_subtitle"),
+                            tasks: todayTasks
+                        )
                     }
 
                     if !upcomingTasks.isEmpty {
-                        taskSection(title: "Next Up", subtitle: "Queued thoughts", tasks: upcomingTasks)
+                        taskSection(
+                            title: languageStore.localized("tasks.section.next_up"),
+                            subtitle: languageStore.localized("tasks.section.next_up_subtitle"),
+                            tasks: upcomingTasks
+                        )
                     }
 
                     if !completedTasks.isEmpty {
-                        taskSection(title: "Done", subtitle: "Nice momentum", tasks: completedTasks)
+                        taskSection(
+                            title: languageStore.localized("tasks.section.done"),
+                            subtitle: languageStore.localized("tasks.section.done_subtitle"),
+                            tasks: completedTasks
+                        )
                     }
                 }
             }

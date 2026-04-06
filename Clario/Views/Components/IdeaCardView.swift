@@ -4,12 +4,13 @@ struct IdeaCardView: View {
     let idea: IdeaItem
     let onDelete: () -> Void
 
+    @Bindable private var languageStore = AppLanguageStore.shared
     @State private var isExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Label("Idea", systemImage: "sparkles")
+                Label(languageStore.localized("card.badge.idea"), systemImage: "sparkles")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Color(red: 0.48, green: 0.39, blue: 0.97))
                     .padding(.horizontal, 10)

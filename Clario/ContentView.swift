@@ -5,11 +5,12 @@
 //  Created by Диас Сайынов on 19.03.2026.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Bindable private var languageStore = AppLanguageStore.shared
     @State private var viewModel: BrainCaptureViewModel
     @State private var selectedTab = AppTab.tasks
     @State private var isComposerPresented = false
@@ -41,7 +42,7 @@ struct ContentView: View {
                                 .padding(.top, 12)
                                 .tag(AppTab.tasks)
                                 .tabItem {
-                                    Label("Tasks", systemImage: "checklist")
+                                    Label(languageStore.localized("tab.tasks"), systemImage: "checklist")
                                 }
 
                             IdeasScreen()
@@ -50,7 +51,7 @@ struct ContentView: View {
                                 .padding(.top, 12)
                                 .tag(AppTab.ideas)
                                 .tabItem {
-                                    Label("Ideas", systemImage: "sparkles.rectangle.stack")
+                                    Label(languageStore.localized("tab.ideas"), systemImage: "sparkles.rectangle.stack")
                                 }
 
                             NotesScreen()
@@ -59,7 +60,7 @@ struct ContentView: View {
                                 .padding(.top, 12)
                                 .tag(AppTab.notes)
                                 .tabItem {
-                                    Label("Notes", systemImage: "note.text")
+                                    Label(languageStore.localized("tab.notes"), systemImage: "note.text")
                                 }
                         }
                         .tint(Color(red: 0.28, green: 0.35, blue: 0.96))
@@ -92,13 +93,40 @@ struct ContentView: View {
                                 )
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("New capture")
+                        .accessibilityLabel(languageStore.localized("accessibility.new_capture"))
                         .padding(.trailing, 20)
                         .padding(.bottom, geo.safeAreaInsets.bottom + 52)
                     }
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Button {
+                            languageStore.code = "en"
+                        } label: {
+                            languageMenuRow(code: "en", title: "English")
+                        }
+                        Button {
+                            languageStore.code = "ru"
+                        } label: {
+                            languageMenuRow(code: "ru", title: "Русский")
+                        }
+                        Button {
+                            languageStore.code = "kk"
+                        } label: {
+                            languageMenuRow(code: "kk", title: "Қазақша")
+                        }
+                    } label: {
+                        Image(systemName: "globe")
+                            .font(.body.weight(.semibold))
+                            .foregroundStyle(Color(red: 0.28, green: 0.35, blue: 0.96))
+                    }
+                    .accessibilityLabel(languageStore.localized("accessibility.language_menu"))
+                }
+            }
+            .environment(\.locale, Locale(identifier: languageStore.code))
             .sheet(isPresented: $isComposerPresented) {
                 NavigationStack {
                     CaptureComposerView(viewModel: viewModel) {
@@ -108,12 +136,23 @@ struct ContentView: View {
                     }
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Close") {
+                            Button(languageStore.localized("button.close")) {
                                 isComposerPresented = false
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func languageMenuRow(code: String, title: String) -> some View {
+        HStack {
+            Text(title)
+            if languageStore.code == code {
+                Spacer(minLength: 8)
+                Image(systemName: "checkmark")
             }
         }
     }

@@ -6,6 +6,8 @@ struct TaskCardView: View {
     let onToggleToday: () -> Void
     let onDelete: () -> Void
 
+    @Bindable private var languageStore = AppLanguageStore.shared
+
     var body: some View {
         HStack(alignment: .center, spacing: 14) {
             Button(action: onToggleComplete) {
@@ -37,7 +39,10 @@ struct TaskCardView: View {
 
                 HStack(spacing: 8) {
                     Button(action: onToggleToday) {
-                        Label(task.isToday ? "Today" : "Later", systemImage: task.isToday ? "sun.max.fill" : "sun.max")
+                        Label(
+                            task.isToday ? languageStore.localized("task.schedule.today") : languageStore.localized("task.schedule.later"),
+                            systemImage: task.isToday ? "sun.max.fill" : "sun.max"
+                        )
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 7)
