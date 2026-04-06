@@ -1,24 +1,40 @@
 import Foundation
 
-struct BrainParseResult: Sendable {
+struct AIResult: Sendable {
     let tasks: [String]
     let ideas: [String]
     let notes: [String]
 
-    static let empty = BrainParseResult(tasks: [], ideas: [], notes: [])
+    static let empty = AIResult(tasks: [], ideas: [], notes: [])
 }
 
 protocol AIService: Sendable {
-    func process(input: String) async throws -> BrainParseResult
+    func process(input: String) async throws -> AIResult
 }
 
 enum AIServiceError: LocalizedError {
+    case missingAPIKey
     case invalidResponse
+    case network(Error)
+    case requestFailed(statusCode: Int, message: String?)
+    case malformedJSON
 
     var errorDescription: String? {
         switch self {
+        case .missingAPIKey:
+            return "OpenAI API key не найден. Добавьте `OPENAI_API_KEY` в environment variables или `Info.plist`."
         case .invalidResponse:
-            return "Не удалось обработать ответ AI."
+            return "OpenAI вернул неожиданный ответ."
+        case let .network(error):
+            return "Ошибка сети: \(error.localizedDescription)"
+        case let .requestFailed(statusCode, message):
+            if let message, !message.isEmpty {
+                return "OpenAI error \(statusCode): \(message)"
+            }
+
+            return "OpenAI request failed with status \(statusCode)."
+        case .malformedJSON:
+            return "Не удалось распарсить JSON от AI."
         }
     }
 }
@@ -43,11 +59,12 @@ enum AIResponseParser {
         }
     }
 
-    static func parse(json: String) throws -> BrainParseResult {
-        let data = Data(json.utf8)
+    static func parse(json: String) throws -> AIResult {
+        let cleaned = normalize(json: json)
+        let data = Data(cleaned.utf8)
 
         if let decoded = try? JSONDecoder().decode(DecodedResponse.self, from: data) {
-            return BrainParseResult(
+            return AIResult(
                 tasks: sanitize(decoded.tasks),
                 ideas: sanitize(decoded.ideas),
                 notes: sanitize(decoded.notes)
@@ -57,10 +74,10 @@ enum AIResponseParser {
         guard
             let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
         else {
-            throw AIServiceError.invalidResponse
+            throw AIServiceError.malformedJSON
         }
 
-        return BrainParseResult(
+        return AIResult(
             tasks: sanitize(object["tasks"] as? [String] ?? []),
             ideas: sanitize(object["ideas"] as? [String] ?? []),
             notes: sanitize(object["notes"] as? [String] ?? [])
@@ -71,5 +88,39 @@ enum AIResponseParser {
         values
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
+    }
+
+    private static func normalize(json: String) -> String {
+        let trimmed = json.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if trimmed.hasPrefix("```") {
+            let withoutFenceMarker = trimmed
+                .replacingOccurrences(of: "```json", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            if let jsonSlice = extractJSONObject(from: withoutFenceMarker) {
+                return jsonSlice
+            }
+
+            return withoutFenceMarker
+        }
+
+        if let jsonSlice = extractJSONObject(from: trimmed) {
+            return jsonSlice
+        }
+
+        return trimmed
+    }
+
+    private static func extractJSONObject(from text: String) -> String? {
+        guard
+            let start = text.firstIndex(of: "{"),
+            let end = text.lastIndex(of: "}")
+        else {
+            return nil
+        }
+
+        return String(text[start...end])
     }
 }

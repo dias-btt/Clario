@@ -10,9 +10,22 @@
 		F572BC072F6C680E008ADA73 /* Clario.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clario.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F572BC6E2F6C6ECF008ADA73 /* Exceptions for "Clario" folder in "Clario" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F572BC062F6C680E008ADA73 /* Clario */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F572BC092F6C680E008ADA73 /* Clario */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F572BC6E2F6C6ECF008ADA73 /* Exceptions for "Clario" folder in "Clario" target */,
+			);
 			path = Clario;
 			sourceTree = "<group>";
 		};
@@ -256,6 +269,8 @@
 				DEVELOPMENT_TEAM = TH28H2DHB8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clario/Info.plist;
+				INFOPLIST_KEY_OPENAI_API_KEY = "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";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -288,6 +303,8 @@
 				DEVELOPMENT_TEAM = TH28H2DHB8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Clario/Info.plist;
+				INFOPLIST_KEY_OPENAI_API_KEY = "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";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

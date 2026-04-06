@@ -27,7 +27,7 @@ struct ClarioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: BrainCaptureViewModel(aiService: MockAIService()))
+            ContentView(viewModel: BrainCaptureViewModel(aiService: OpenAIService.live()))
         }
         .modelContainer(sharedModelContainer)
     }

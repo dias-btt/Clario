@@ -59,12 +59,17 @@ struct CaptureComposerView: View {
 
             HStack(spacing: 12) {
                 if viewModel.isProcessing {
-                    Label("Organizing...", systemImage: "sparkles")
-                        .font(.footnote.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .background(Color.white.opacity(0.76), in: Capsule())
-                        .transition(.move(edge: .leading).combined(with: .opacity))
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .controlSize(.small)
+
+                        Text("Organizing...")
+                            .font(.footnote.weight(.semibold))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(Color.white.opacity(0.76), in: Capsule())
+                    .transition(.move(edge: .leading).combined(with: .opacity))
                 }
 
                 if let errorMessage = viewModel.errorMessage {

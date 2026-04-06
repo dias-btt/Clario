@@ -12,6 +12,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel: BrainCaptureViewModel
     @State private var selectedTab = AppTab.tasks
+    @State private var isComposerPresented = false
 
     init(viewModel: BrainCaptureViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -31,38 +32,89 @@ struct ContentView: View {
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 20) {
+                GeometryReader { geo in
+                    ZStack(alignment: .bottomTrailing) {
+                        TabView(selection: $selectedTab) {
+                            TasksScreen()
+                                .screenContainer()
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
+                                .tag(AppTab.tasks)
+                                .tabItem {
+                                    Label("Tasks", systemImage: "checklist")
+                                }
+
+                            IdeasScreen()
+                                .screenContainer()
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
+                                .tag(AppTab.ideas)
+                                .tabItem {
+                                    Label("Ideas", systemImage: "sparkles.rectangle.stack")
+                                }
+
+                            NotesScreen()
+                                .screenContainer()
+                                .padding(.horizontal, 20)
+                                .padding(.top, 12)
+                                .tag(AppTab.notes)
+                                .tabItem {
+                                    Label("Notes", systemImage: "note.text")
+                                }
+                        }
+                        .tint(Color(red: 0.28, green: 0.35, blue: 0.96))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                        Button {
+                            isComposerPresented = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.title2.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 56, height: 56)
+                                .background(
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    Color(red: 0.33, green: 0.44, blue: 0.99),
+                                                    Color(red: 0.51, green: 0.32, blue: 0.96)
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .shadow(
+                                            color: Color(red: 0.39, green: 0.37, blue: 0.98).opacity(0.35),
+                                            radius: 12,
+                                            y: 6
+                                        )
+                                )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("New capture")
+                        .padding(.trailing, 20)
+                        .padding(.bottom, geo.safeAreaInsets.bottom + 52)
+                    }
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $isComposerPresented) {
+                NavigationStack {
                     CaptureComposerView(viewModel: viewModel) {
                         Task {
                             await viewModel.submit(using: modelContext)
                         }
                     }
-
-                    TabView(selection: $selectedTab) {
-                        TasksScreen()
-                            .tag(AppTab.tasks)
-                            .tabItem {
-                                Label("Tasks", systemImage: "checklist")
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Close") {
+                                isComposerPresented = false
                             }
-
-                        IdeasScreen()
-                            .tag(AppTab.ideas)
-                            .tabItem {
-                                Label("Ideas", systemImage: "sparkles.rectangle.stack")
-                            }
-
-                        NotesScreen()
-                            .tag(AppTab.notes)
-                            .tabItem {
-                                Label("Notes", systemImage: "note.text")
-                            }
+                        }
                     }
-                    .tint(Color(red: 0.28, green: 0.35, blue: 0.96))
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
             }
-            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -73,7 +125,19 @@ private enum AppTab {
     case notes
 }
 
+extension View {
+    func screenContainer() -> some View {
+        self
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.white.opacity(0.9))
+                    .shadow(color: .black.opacity(0.04), radius: 20, x: 0, y: 8)
+            )
+    }
+}
+
 #Preview {
-    ContentView(viewModel: BrainCaptureViewModel(aiService: MockAIService()))
+    ContentView(viewModel: BrainCaptureViewModel(aiService: OpenAIService.live()))
         .modelContainer(PreviewSampleData.container)
 }

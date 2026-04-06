@@ -42,7 +42,7 @@ final class BrainCaptureViewModel {
         errorMessage = nil
     }
 
-    private func persist(_ result: BrainParseResult, in modelContext: ModelContext) {
+    private func persist(_ result: AIResult, in modelContext: ModelContext) {
         withAnimation(.snappy) {
             result.tasks.forEach { modelContext.insert(TaskItem(title: $0)) }
             result.ideas.forEach { modelContext.insert(IdeaItem(content: $0)) }
