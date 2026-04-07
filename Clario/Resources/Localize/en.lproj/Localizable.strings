@@ -19,6 +19,16 @@
 "tasks.section.next_up_subtitle" = "Queued thoughts";
 "tasks.section.done" = "Done";
 "tasks.section.done_subtitle" = "Nice momentum";
+"tasks.filter.all" = "All";
+"tasks.filter.urgent" = "Urgent";
+"tasks.filter.important" = "Important";
+"tasks.filter.low_priority" = "Low priority";
+"tasks.filter.done" = "Done";
+"tasks.empty.filtered.title" = "Nothing here";
+"tasks.empty.filtered.message" = "Try another filter or add a new capture.";
+"task.tag.urgent" = "Urgent";
+"task.tag.important" = "Important";
+"task.tag.low_priority" = "Low priority";
 
 /* Notes */
 "notes.screen.title" = "Notes";

@@ -19,6 +19,16 @@
 "tasks.section.next_up_subtitle" = "В очереди";
 "tasks.section.done" = "Готово";
 "tasks.section.done_subtitle" = "Отличный прогресс";
+"tasks.filter.all" = "Все";
+"tasks.filter.urgent" = "Срочно";
+"tasks.filter.important" = "Важно";
+"tasks.filter.low_priority" = "Низкий приоритет";
+"tasks.filter.done" = "Готово";
+"tasks.empty.filtered.title" = "Здесь пусто";
+"tasks.empty.filtered.message" = "Попробуйте другой фильтр или добавьте новую запись.";
+"task.tag.urgent" = "Срочно";
+"task.tag.important" = "Важно";
+"task.tag.low_priority" = "Низкий приоритет";
 
 /* Notes */
 "notes.screen.title" = "Заметки";

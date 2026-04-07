@@ -16,8 +16,8 @@ enum PreviewSampleData {
 
             let context = container.mainContext
 
-            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task1"), isToday: true))
-            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task2"), isCompleted: true, createdAt: .now.addingTimeInterval(-3600)))
+            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task1"), isToday: true, priorityTag: .urgent))
+            context.insert(TaskItem(title: AppLanguageStore.shared.localized("preview.task2"), isCompleted: true, priorityTag: .important, createdAt: .now.addingTimeInterval(-3600)))
             context.insert(IdeaItem(content: AppLanguageStore.shared.localized("preview.idea1")))
             context.insert(NoteItem(content: AppLanguageStore.shared.localized("preview.note1")))
 
