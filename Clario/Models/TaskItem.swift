@@ -7,6 +7,7 @@ final class TaskItem {
     var title: String
     var isCompleted: Bool
     var isToday: Bool
+    var priorityTag: TaskPriorityTag
     var createdAt: Date
 
     init(
@@ -14,12 +15,14 @@ final class TaskItem {
         title: String,
         isCompleted: Bool = false,
         isToday: Bool = false,
+        priorityTag: TaskPriorityTag = .important,
         createdAt: Date = .now
     ) {
         self.id = id
         self.title = title
         self.isCompleted = isCompleted
         self.isToday = isToday
+        self.priorityTag = priorityTag
         self.createdAt = createdAt
     }
 }

@@ -2,20 +2,47 @@ import SwiftUI
 import SwiftData
 
 struct TasksScreen: View {
+    private enum TaskFilter: String, CaseIterable, Identifiable {
+        case all
+        case urgent
+        case important
+        case lowPriority
+        case done
+
+        var id: String { rawValue }
+    }
+
     @Environment(\.modelContext) private var modelContext
     @Bindable private var languageStore = AppLanguageStore.shared
     @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasks: [TaskItem]
 
+    @State private var selectedFilter: TaskFilter = .all
+
+    private var filteredTasks: [TaskItem] {
+        switch selectedFilter {
+        case .all:
+            tasks
+        case .urgent:
+            tasks.filter { !$0.isCompleted && $0.priorityTag == .urgent }
+        case .important:
+            tasks.filter { !$0.isCompleted && $0.priorityTag == .important }
+        case .lowPriority:
+            tasks.filter { !$0.isCompleted && $0.priorityTag == .lowPriority }
+        case .done:
+            tasks.filter(\.isCompleted)
+        }
+    }
+
     private var todayTasks: [TaskItem] {
-        tasks.filter { $0.isToday && !$0.isCompleted }
+        filteredTasks.filter { $0.isToday && !$0.isCompleted }
     }
 
     private var upcomingTasks: [TaskItem] {
-        tasks.filter { !$0.isToday && !$0.isCompleted }
+        filteredTasks.filter { !$0.isToday && !$0.isCompleted }
     }
 
     private var completedTasks: [TaskItem] {
-        tasks.filter(\.isCompleted)
+        filteredTasks.filter(\.isCompleted)
     }
 
     var body: some View {
@@ -29,11 +56,21 @@ struct TasksScreen: View {
                     )
                 )
 
+                if !tasks.isEmpty {
+                    taskFilterChips
+                }
+
                 if tasks.isEmpty {
                     EmptyStateView(
                         title: languageStore.localized("tasks.empty.title"),
                         message: languageStore.localized("tasks.empty.message"),
                         systemImage: "checklist.checked"
+                    )
+                } else if filteredTasks.isEmpty {
+                    EmptyStateView(
+                        title: languageStore.localized("tasks.empty.filtered.title"),
+                        message: languageStore.localized("tasks.empty.filtered.message"),
+                        systemImage: "line.3.horizontal.decrease.circle"
                     )
                 } else {
                     if !todayTasks.isEmpty {
@@ -65,6 +102,46 @@ struct TasksScreen: View {
         }
         .scrollClipDisabled()
         .animation(.snappy, value: tasks.count)
+        .animation(.snappy, value: selectedFilter)
+    }
+
+    private var taskFilterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(TaskFilter.allCases) { filter in
+                    Button {
+                        selectedFilter = filter
+                    } label: {
+                        Text(filterTitle(filter))
+                            .font(.subheadline.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                selectedFilter == filter ? Color.accentColor.opacity(0.22) : Color.black.opacity(0.05),
+                                in: Capsule()
+                            )
+                            .foregroundStyle(selectedFilter == filter ? Color.accentColor : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func filterTitle(_ filter: TaskFilter) -> String {
+        switch filter {
+        case .all:
+            languageStore.localized("tasks.filter.all")
+        case .urgent:
+            languageStore.localized("tasks.filter.urgent")
+        case .important:
+            languageStore.localized("tasks.filter.important")
+        case .lowPriority:
+            languageStore.localized("tasks.filter.low_priority")
+        case .done:
+            languageStore.localized("tasks.filter.done")
+        }
     }
 
     @ViewBuilder

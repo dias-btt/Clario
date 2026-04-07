@@ -44,7 +44,7 @@ final class BrainCaptureViewModel {
 
     private func persist(_ result: AIResult, in modelContext: ModelContext) {
         withAnimation(.snappy) {
-            result.tasks.forEach { modelContext.insert(TaskItem(title: $0)) }
+            result.tasks.forEach { modelContext.insert(TaskItem(title: $0.title, priorityTag: $0.tag)) }
             result.ideas.forEach { modelContext.insert(IdeaItem(content: $0)) }
             result.notes.forEach { modelContext.insert(NoteItem(content: $0)) }
         }

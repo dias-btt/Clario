@@ -111,7 +111,9 @@ private enum PromptBuilder {
     - Return valid JSON only.
     - Do not include markdown, code fences, commentary, or explanation.
     - Output exactly these keys: tasks, ideas, notes.
-    - Each key must contain an array of strings.
+    - tasks must be an array of objects, each with: title (string) and tag (string).
+    - tag must be exactly one of: urgent, important, low_priority (infer urgency from wording and deadlines).
+    - ideas and notes must be arrays of strings.
     - Tasks must be actionable, concise, and phrased as standalone actions.
     - Ideas are concepts to explore, not immediate action items.
     - Notes are factual thoughts, reflections, or information that do not fit tasks or ideas.
@@ -126,7 +128,7 @@ private enum PromptBuilder {
 
         Required JSON shape:
         {
-          "tasks": [String],
+          "tasks": [ { "title": String, "tag": "urgent" | "important" | "low_priority" } ],
           "ideas": [String],
           "notes": [String]
         }
@@ -188,9 +190,36 @@ private struct OpenAIChatCompletionRequest: Encodable {
     }
 
     struct Properties: Encodable {
-        let tasks = ArrayField()
+        let tasks = TaskItemsArrayField()
         let ideas = ArrayField()
         let notes = ArrayField()
+    }
+
+    struct TaskItemsArrayField: Encodable {
+        let type = "array"
+        let items = TaskObjectSchema()
+    }
+
+    struct TaskObjectSchema: Encodable {
+        let type = "object"
+        let properties = TaskObjectProperties()
+        let required = ["title", "tag"]
+        let additionalProperties = false
+    }
+
+    struct TaskObjectProperties: Encodable {
+        let title = StringField()
+        let tag = TagEnumField()
+    }
+
+    struct TagEnumField: Encodable {
+        let type = "string"
+        let enumValues = ["urgent", "important", "low_priority"]
+
+        enum CodingKeys: String, CodingKey {
+            case type
+            case enumValues = "enum"
+        }
     }
 
     struct ArrayField: Encodable {

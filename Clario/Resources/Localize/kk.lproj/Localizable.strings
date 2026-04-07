@@ -19,6 +19,16 @@
 "tasks.section.next_up_subtitle" = "Кезекте";
 "tasks.section.done" = "Дайын";
 "tasks.section.done_subtitle" = "Керемет алға жылжу";
+"tasks.filter.all" = "Барлығы";
+"tasks.filter.urgent" = "Шұғыл";
+"tasks.filter.important" = "Маңызды";
+"tasks.filter.low_priority" = "Төмен басымдық";
+"tasks.filter.done" = "Дайын";
+"tasks.empty.filtered.title" = "Мұнда бос";
+"tasks.empty.filtered.message" = "Басқа сүзгі таңдаңыз немесе жаңа жазба қосыңыз.";
+"task.tag.urgent" = "Шұғыл";
+"task.tag.important" = "Маңызды";
+"task.tag.low_priority" = "Төмен басымдық";
 
 /* Notes */
 "notes.screen.title" = "Ескертулер";

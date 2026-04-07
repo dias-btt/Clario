@@ -1,7 +1,12 @@
 import Foundation
 
+struct AITask: Sendable {
+    let title: String
+    let tag: TaskPriorityTag
+}
+
 struct AIResult: Sendable {
-    let tasks: [String]
+    let tasks: [AITask]
     let ideas: [String]
     let notes: [String]
 
@@ -41,6 +46,11 @@ enum AIServiceError: LocalizedError {
 }
 
 enum AIResponseParser {
+    private struct TaskPayload: Decodable {
+        let title: String
+        let tag: String?
+    }
+
     private struct DecodedResponse: Decodable {
         private enum CodingKeys: String, CodingKey {
             case tasks
@@ -48,15 +58,28 @@ enum AIResponseParser {
             case notes
         }
 
-        let tasks: [String]
+        let tasks: [AITask]
         let ideas: [String]
         let notes: [String]
 
         init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            tasks = try container.decodeIfPresent([String].self, forKey: .tasks) ?? []
             ideas = try container.decodeIfPresent([String].self, forKey: .ideas) ?? []
             notes = try container.decodeIfPresent([String].self, forKey: .notes) ?? []
+
+            if container.contains(.tasks) {
+                if let payloads = try? container.decode([TaskPayload].self, forKey: .tasks) {
+                    tasks = sanitizeAITasks(payloads.map { payload in
+                        AITask(title: payload.title, tag: TaskPriorityTag.from(aiString: payload.tag ?? ""))
+                    })
+                } else if let strings = try? container.decode([String].self, forKey: .tasks) {
+                    tasks = sanitizeAITasks(strings.map { AITask(title: $0, tag: .important) })
+                } else {
+                    tasks = []
+                }
+            } else {
+                tasks = []
+            }
         }
     }
 
@@ -66,7 +89,7 @@ enum AIResponseParser {
 
         if let decoded = try? JSONDecoder().decode(DecodedResponse.self, from: data) {
             return AIResult(
-                tasks: sanitize(decoded.tasks),
+                tasks: decoded.tasks,
                 ideas: sanitize(decoded.ideas),
                 notes: sanitize(decoded.notes)
             )
@@ -79,10 +102,35 @@ enum AIResponseParser {
         }
 
         return AIResult(
-            tasks: sanitize(object["tasks"] as? [String] ?? []),
+            tasks: parseTasksArray(object["tasks"]),
             ideas: sanitize(object["ideas"] as? [String] ?? []),
             notes: sanitize(object["notes"] as? [String] ?? [])
         )
+    }
+
+    private static func sanitizeAITasks(_ tasks: [AITask]) -> [AITask] {
+        tasks
+            .map { AITask(title: $0.title.trimmingCharacters(in: .whitespacesAndNewlines), tag: $0.tag) }
+            .filter { !$0.title.isEmpty }
+    }
+
+    private static func parseTasksArray(_ value: Any?) -> [AITask] {
+        guard let array = value as? [Any] else { return [] }
+        var result: [AITask] = []
+        for item in array {
+            if let str = item as? String {
+                let title = str.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !title.isEmpty {
+                    result.append(AITask(title: title, tag: .important))
+                }
+            } else if let dict = item as? [String: Any] {
+                let title = (dict["title"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !title.isEmpty else { continue }
+                let tagString = dict["tag"] as? String ?? ""
+                result.append(AITask(title: title, tag: TaskPriorityTag.from(aiString: tagString)))
+            }
+        }
+        return result
     }
 
     private static func sanitize(_ values: [String]) -> [String] {

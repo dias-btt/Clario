@@ -31,13 +31,28 @@ struct TaskCardView: View {
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(task.title)
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                    .strikethrough(task.isCompleted, color: .secondary)
-                    .animation(.snappy, value: task.isCompleted)
+                HStack(alignment: .top) {
+                    Text(task.title)
+                        .font(.body.weight(.medium))
+                        .foregroundStyle(task.isCompleted ? .secondary : .primary)
+                        .strikethrough(task.isCompleted, color: .secondary)
+                        .animation(.snappy, value: task.isCompleted)
+                    
+                    Spacer()
+                    
+                    Text(task.createdAt, format: .relative(presentation: .named))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
 
                 HStack(spacing: 8) {
+                    Text(task.priorityTag.localizedLabel(using: languageStore))
+                        .font(.caption.weight(.semibold))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .background(task.priorityTag.labelBackgroundColor, in: Capsule())
+                        .foregroundStyle(task.priorityTag.labelForegroundColor)
+
                     Button(action: onToggleToday) {
                         Label(
                             task.isToday ? languageStore.localized("task.schedule.today") : languageStore.localized("task.schedule.later"),
@@ -51,22 +66,18 @@ struct TaskCardView: View {
                     }
                     .buttonStyle(.plain)
 
-                    Text(task.createdAt, format: .relative(presentation: .named))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Spacer(minLength: 10)
+
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 34, height: 34)
+                            .background(Color.black.opacity(0.04), in: Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-
-            Spacer(minLength: 10)
-
-            Button(action: onDelete) {
-                Image(systemName: "trash")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 34, height: 34)
-                    .background(Color.black.opacity(0.04), in: Circle())
-            }
-            .buttonStyle(.plain)
         }
         .padding(16)
         .background(
@@ -80,5 +91,33 @@ struct TaskCardView: View {
         .shadow(color: .black.opacity(task.isCompleted ? 0.03 : 0.07), radius: 18, y: 10)
         .opacity(task.isCompleted ? 0.72 : 1)
         .scaleEffect(task.isCompleted ? 0.985 : 1)
+    }
+}
+
+private extension TaskPriorityTag {
+    func localizedLabel(using store: AppLanguageStore) -> String {
+        switch self {
+        case .urgent:
+            store.localized("task.tag.urgent")
+        case .important:
+            store.localized("task.tag.important")
+        case .lowPriority:
+            store.localized("task.tag.low_priority")
+        }
+    }
+
+    var labelForegroundColor: Color {
+        switch self {
+        case .urgent:
+            Color.red.opacity(0.92)
+        case .important:
+            Color.orange
+        case .lowPriority:
+            Color.secondary
+        }
+    }
+
+    var labelBackgroundColor: Color {
+        labelForegroundColor.opacity(0.14)
     }
 }
