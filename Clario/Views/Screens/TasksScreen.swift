@@ -13,10 +13,14 @@ struct TasksScreen: View {
     }
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.aiService) private var aiService
     @Bindable private var languageStore = AppLanguageStore.shared
     @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasks: [TaskItem]
+    @Query(sort: \IdeaItem.createdAt, order: .reverse) private var ideas: [IdeaItem]
+    @Query(sort: \NoteItem.createdAt, order: .reverse) private var notes: [NoteItem]
 
     @State private var selectedFilter: TaskFilter = .all
+    @State private var digestSummaryText: String?
 
     private var filteredTasks: [TaskItem] {
         switch selectedFilter {
@@ -45,6 +49,32 @@ struct TasksScreen: View {
         filteredTasks.filter(\.isCompleted)
     }
 
+    private var digestData: DailyDigestData {
+        DailyDigestBuilder.make(tasks: tasks, ideas: ideas, notes: notes)
+    }
+
+    private var digestSummary: String {
+        digestSummaryText ?? DailyDigestSummaryService.localSummary(data: digestData, languageStore: languageStore)
+    }
+
+    /// Stable id for `.task`: changes when digest input changes (same rules as `DailyDigestFingerprint`).
+    private var digestTaskIdentifier: String {
+        DailyDigestFingerprint.identifier(
+            tasks: tasks,
+            ideas: ideas,
+            notes: notes,
+            languageCode: languageStore.code
+        )
+    }
+
+    private func hydrateDigestFromCache() {
+        if let cached = DailyDigestCache.summary(forFingerprint: digestTaskIdentifier) {
+            digestSummaryText = cached
+        } else {
+            digestSummaryText = nil
+        }
+    }
+
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(alignment: .leading, spacing: 18) {
@@ -55,6 +85,20 @@ struct TasksScreen: View {
                         Int64(tasks.filter { !$0.isCompleted }.count)
                     )
                 )
+
+                DailyDigestCard(summary: digestSummary)
+                    .onAppear { hydrateDigestFromCache() }
+                    .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
+                    .task(id: digestTaskIdentifier) {
+                        digestSummaryText = await DailyDigestSummaryService.summarize(
+                            tasks: tasks,
+                            ideas: ideas,
+                            notes: notes,
+                            languageStore: languageStore,
+                            aiService: aiService
+                        )
+                    }
+                    .animation(.easeOut(duration: 0.22), value: digestData)
 
                 if !tasks.isEmpty {
                     taskFilterChips
@@ -102,6 +146,8 @@ struct TasksScreen: View {
         }
         .scrollClipDisabled()
         .animation(.snappy, value: tasks.count)
+        .animation(.snappy, value: ideas.count)
+        .animation(.snappy, value: notes.count)
         .animation(.snappy, value: selectedFilter)
     }
 

@@ -30,6 +30,19 @@
 "task.tag.important" = "Маңызды";
 "task.tag.low_priority" = "Төмен басымдық";
 
+/* Daily digest */
+"digest.title" = "Күндік дайджест";
+"digest.summary.quiet" = "Бүгін тыныш. Жаңа ештеңе жоқ — тек тыныш тыныс.";
+"digest.summary.tasks_only" = "Бүгін %lld тапсырма назарда: алдымен шұғыл мен маңызды.";
+"digest.summary.ideas_notes_only" = "Бүгін %lld жаңа идея немесе ескерту пайда болды — қысқаша төменде.";
+"digest.summary.mixed" = "Күннің жұмсақ суреті: %lld тапсырма, %lld идея және %lld ескерту.";
+"digest.section.tasks" = "Тапсырмалар";
+"digest.section.ideas" = "Идеялар";
+"digest.section.notes" = "Ескертулер";
+"digest.more.tasks" = "тағы %lld тапсырма";
+"digest.more.ideas" = "тағы %lld идея";
+"digest.more.notes" = "тағы %lld ескерту";
+
 /* Notes */
 "notes.screen.title" = "Ескертулер";
 "notes.screen.subtitle_stored" = "%lld сақталған";

@@ -86,6 +86,135 @@ struct OpenAIService: AIService {
 
         return try AIResponseParser.parse(json: content)
     }
+
+    func summarizeDailyDigest(structuredContext: String, languageCode: String) async throws -> String {
+        let trimmedContext = structuredContext.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedContext.isEmpty else {
+            throw AIServiceError.invalidResponse
+        }
+
+        let trimmedAPIKey = apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedAPIKey.isEmpty else {
+            throw AIServiceError.missingAPIKey
+        }
+
+        let languageName = Self.digestLanguageName(for: languageCode)
+
+        var request = URLRequest(url: endpoint)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(trimmedAPIKey)", forHTTPHeaderField: "Authorization")
+
+        let payload = OpenAIDigestChatRequest(
+            model: model,
+            messages: [
+                .init(
+                    role: "system",
+                    content: Self.digestSystemPrompt(languageName: languageName)
+                ),
+                .init(
+                    role: "user",
+                    content: Self.digestUserPrompt(context: trimmedContext, languageName: languageName)
+                )
+            ]
+        )
+
+        request.httpBody = try JSONEncoder().encode(payload)
+
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw AIServiceError.network(error)
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AIServiceError.invalidResponse
+        }
+
+        guard (200 ..< 300).contains(httpResponse.statusCode) else {
+            let message = try? JSONDecoder().decode(OpenAIErrorEnvelope.self, from: data).error.message
+            throw AIServiceError.requestFailed(statusCode: httpResponse.statusCode, message: message)
+        }
+
+        let completion: OpenAIChatCompletionResponse
+
+        do {
+            completion = try JSONDecoder().decode(OpenAIChatCompletionResponse.self, from: data)
+        } catch {
+            throw AIServiceError.invalidResponse
+        }
+
+        guard let raw = completion.choices.first?.message.content else {
+            throw AIServiceError.invalidResponse
+        }
+
+        let summary = Self.stripDigestFences(from: raw)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !summary.isEmpty else {
+            throw AIServiceError.invalidResponse
+        }
+
+        return summary
+    }
+
+    private static func digestLanguageName(for code: String) -> String {
+        switch code.lowercased() {
+        case "ru": return "Russian"
+        case "kk": return "Kazakh"
+        default: return "English"
+        }
+    }
+
+    private static func digestSystemPrompt(languageName: String) -> String {
+        """
+        You write short daily digests for a productivity app called Clario.
+        Output 2–4 sentences of plain prose only. No markdown, no bullet lists, no title line, no emojis.
+        Tone: calm, clear, and spacious—especially for people who overthink. Acknowledge priorities gently without hype.
+        Write entirely in \(languageName).
+        """
+    }
+
+    private static func digestUserPrompt(context: String, languageName: String) -> String {
+        """
+        Use the following snapshot from the user's data (tasks for today are listed urgent-first). \
+        Compose a digest in \(languageName).
+
+        \(context)
+        """
+    }
+
+    private static func stripDigestFences(from text: String) -> String {
+        var t = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if t.hasPrefix("```") {
+            t = t.replacingOccurrences(of: "```markdown", with: "")
+                .replacingOccurrences(of: "```", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        return t
+    }
+}
+
+private struct OpenAIDigestChatRequest: Encodable {
+    let model: String
+    let messages: [Message]
+    let temperature = 0.45
+    let maxTokens = 220
+
+    enum CodingKeys: String, CodingKey {
+        case model
+        case messages
+        case temperature
+        case maxTokens = "max_tokens"
+    }
+
+    struct Message: Encodable {
+        let role: String
+        let content: String
+    }
 }
 
 private enum RuntimeOpenAIConfiguration {

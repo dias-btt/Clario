@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 struct AITask: Sendable {
     let title: String
@@ -15,6 +16,20 @@ struct AIResult: Sendable {
 
 protocol AIService: Sendable {
     func process(input: String) async throws -> AIResult
+
+    /// Short prose summary for the daily digest card. Implementations may call a chat model.
+    func summarizeDailyDigest(structuredContext: String, languageCode: String) async throws -> String
+}
+
+private enum AIServiceEnvironmentKey: EnvironmentKey {
+    static let defaultValue: AIService = OpenAIService.live()
+}
+
+extension EnvironmentValues {
+    var aiService: AIService {
+        get { self[AIServiceEnvironmentKey.self] }
+        set { self[AIServiceEnvironmentKey.self] = newValue }
+    }
 }
 
 enum AIServiceError: LocalizedError {
