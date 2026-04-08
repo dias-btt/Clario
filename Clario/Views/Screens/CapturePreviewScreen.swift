@@ -132,7 +132,7 @@ struct CapturePreviewScreen: View {
             HStack {
                 Label(title, systemImage: systemImage)
                 Spacer()
-                Text(languageStore.localizedFormat("preview.count", keptCount, totalCount))
+                Text(languageStore.localizedFormat("preview.count", Int64(keptCount), Int64(totalCount)))
                     .foregroundStyle(.secondary)
             }
         }

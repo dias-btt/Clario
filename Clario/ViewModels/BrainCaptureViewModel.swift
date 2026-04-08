@@ -26,17 +26,16 @@ final class BrainCaptureViewModel {
 
         isProcessing = true
         errorMessage = nil
+        defer { isProcessing = false }
 
         do {
             let result = try await aiService.process(input: text)
             inputText = ""
-            isProcessing = false
             return CaptureDraft(result: result)
         } catch {
             errorMessage = error.localizedDescription
         }
 
-        isProcessing = false
         return nil
     }
 
@@ -46,7 +45,9 @@ final class BrainCaptureViewModel {
 
     func persist(_ draft: CaptureDraft, in modelContext: ModelContext) {
         withAnimation(.snappy) {
-            draft.keptTasks.forEach { modelContext.insert(TaskItem(title: $0)) }
+            draft.tasks.filter(\.isKept).forEach {
+                modelContext.insert(TaskItem(title: $0.text, priorityTag: $0.tag ?? .important))
+            }
             draft.keptIdeas.forEach { modelContext.insert(IdeaItem(content: $0)) }
             draft.keptNotes.forEach { modelContext.insert(NoteItem(content: $0)) }
         }

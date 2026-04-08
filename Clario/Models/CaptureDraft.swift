@@ -4,11 +4,13 @@ struct CaptureDraft: Identifiable, Sendable {
     struct Item: Identifiable, Sendable, Hashable {
         let id: UUID
         var text: String
+        var tag: TaskPriorityTag?
         var isKept: Bool
 
-        init(id: UUID = UUID(), text: String, isKept: Bool = true) {
+        init(id: UUID = UUID(), text: String, tag: TaskPriorityTag? = nil, isKept: Bool = true) {
             self.id = id
             self.text = text
+            self.tag = tag
             self.isKept = isKept
         }
     }
@@ -27,7 +29,7 @@ struct CaptureDraft: Identifiable, Sendable {
 
     init(result: AIResult) {
         self.init(
-            tasks: result.tasks.map { Item(text: $0) },
+            tasks: result.tasks.map { Item(text: $0.title, tag: $0.tag) },
             ideas: result.ideas.map { Item(text: $0) },
             notes: result.notes.map { Item(text: $0) }
         )
