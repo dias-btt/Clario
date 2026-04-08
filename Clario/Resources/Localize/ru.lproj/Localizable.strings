@@ -70,5 +70,18 @@
 "preview.idea1" = "Превратить мимолётные мысли в ежедневную карточку.";
 "preview.note1" = "Пользователи должны почувствовать облегчение, как только выложат мысль из головы.";
 
+/* Capture preview */
+"preview.title" = "Предпросмотр";
+"preview.section.tasks" = "Задачи";
+"preview.section.ideas" = "Идеи";
+"preview.section.notes" = "Заметки";
+"preview.count" = "%lld/%lld";
+"preview.keep_all" = "Оставить всё";
+"preview.remove_all" = "Убрать всё";
+"preview.save" = "Сохранить";
+"preview.discard" = "Отменить";
+"preview.delete" = "Удалить";
+"preview.empty" = "Пока нечего просматривать.";
+
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "Не удалось создать ModelContainer: %@";

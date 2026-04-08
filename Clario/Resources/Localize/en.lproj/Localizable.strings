@@ -70,5 +70,18 @@
 "preview.idea1" = "Turn fleeting thoughts into a daily recap card.";
 "preview.note1" = "Users should feel relief the moment they brain-dump something.";
 
+/* Capture preview */
+"preview.title" = "Preview";
+"preview.section.tasks" = "Tasks";
+"preview.section.ideas" = "Ideas";
+"preview.section.notes" = "Notes";
+"preview.count" = "%lld/%lld";
+"preview.keep_all" = "Keep all";
+"preview.remove_all" = "Remove all";
+"preview.save" = "Save";
+"preview.discard" = "Discard";
+"preview.delete" = "Delete";
+"preview.empty" = "Nothing to review yet.";
+
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "Could not create ModelContainer: %@";

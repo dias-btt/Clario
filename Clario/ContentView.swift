@@ -14,6 +14,7 @@ struct ContentView: View {
     @State private var viewModel: BrainCaptureViewModel
     @State private var selectedTab = AppTab.tasks
     @State private var isComposerPresented = false
+    @State private var draft: CaptureDraft?
 
     init(viewModel: BrainCaptureViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -131,7 +132,7 @@ struct ContentView: View {
                 NavigationStack {
                     CaptureComposerView(viewModel: viewModel) {
                         Task {
-                            await viewModel.submit(using: modelContext)
+                            draft = await viewModel.submit()
                         }
                     }
                     .toolbar {
@@ -141,6 +142,19 @@ struct ContentView: View {
                             }
                         }
                     }
+                }
+                .sheet(item: $draft) { initial in
+                    CapturePreviewScreen(
+                        initialDraft: initial,
+                        onDiscard: {
+                            draft = nil
+                        },
+                        onSave: { final in
+                            viewModel.persist(final, in: modelContext)
+                            draft = nil
+                            isComposerPresented = false
+                        }
+                    )
                 }
             }
         }

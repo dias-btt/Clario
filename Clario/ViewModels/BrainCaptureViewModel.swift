@@ -20,33 +20,35 @@ final class BrainCaptureViewModel {
         !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isProcessing
     }
 
-    func submit(using modelContext: ModelContext) async {
+    func submit() async -> CaptureDraft? {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        guard !text.isEmpty else { return nil }
 
         isProcessing = true
         errorMessage = nil
 
         do {
             let result = try await aiService.process(input: text)
-            persist(result, in: modelContext)
             inputText = ""
+            isProcessing = false
+            return CaptureDraft(result: result)
         } catch {
             errorMessage = error.localizedDescription
         }
 
         isProcessing = false
+        return nil
     }
 
     func clearError() {
         errorMessage = nil
     }
 
-    private func persist(_ result: AIResult, in modelContext: ModelContext) {
+    func persist(_ draft: CaptureDraft, in modelContext: ModelContext) {
         withAnimation(.snappy) {
-            result.tasks.forEach { modelContext.insert(TaskItem(title: $0.title, priorityTag: $0.tag)) }
-            result.ideas.forEach { modelContext.insert(IdeaItem(content: $0)) }
-            result.notes.forEach { modelContext.insert(NoteItem(content: $0)) }
+            draft.keptTasks.forEach { modelContext.insert(TaskItem(title: $0)) }
+            draft.keptIdeas.forEach { modelContext.insert(IdeaItem(content: $0)) }
+            draft.keptNotes.forEach { modelContext.insert(NoteItem(content: $0)) }
         }
 
         do {

@@ -70,5 +70,18 @@
 "preview.idea1" = "Ұшқын ойларды күнделікті карточкаға айналдыру.";
 "preview.note1" = "Пайдаланушылар ойын тастаған сәтте жеңілдек сезінуі керек.";
 
+/* Capture preview */
+"preview.title" = "Алдын ала қарау";
+"preview.section.tasks" = "Тапсырмалар";
+"preview.section.ideas" = "Идеялар";
+"preview.section.notes" = "Ескертулер";
+"preview.count" = "%lld/%lld";
+"preview.keep_all" = "Бәрін қалдыру";
+"preview.remove_all" = "Бәрін алып тастау";
+"preview.save" = "Сақтау";
+"preview.discard" = "Болдырмау";
+"preview.delete" = "Жою";
+"preview.empty" = "Қарауға ештеңе жоқ.";
+
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "ModelContainer құру мүмкін болмады: %@";
