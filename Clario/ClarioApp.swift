@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct ClarioApp: App {
+    private let aiService: AIService = OpenAIService.live()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             TaskItem.self,
@@ -27,7 +29,8 @@ struct ClarioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: BrainCaptureViewModel(aiService: OpenAIService.live()))
+            ContentView(viewModel: BrainCaptureViewModel(aiService: aiService))
+                .environment(\.aiService, aiService)
         }
         .modelContainer(sharedModelContainer)
     }

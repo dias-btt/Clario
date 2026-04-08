@@ -30,6 +30,19 @@
 "task.tag.important" = "Важно";
 "task.tag.low_priority" = "Низкий приоритет";
 
+/* Daily digest */
+"digest.title" = "Дайджест дня";
+"digest.summary.quiet" = "Сегодня тихо. Ничего нового — только немного воздуха между делами.";
+"digest.summary.tasks_only" = "%lld задач в фокусе: сначала срочные и важные.";
+"digest.summary.ideas_notes_only" = "Сегодня появилось %lld идей или заметок — коротко ниже.";
+"digest.summary.mixed" = "Мягкий срез дня: %lld задач, %lld идей и %lld заметок.";
+"digest.section.tasks" = "Задачи";
+"digest.section.ideas" = "Идеи";
+"digest.section.notes" = "Заметки";
+"digest.more.tasks" = "ещё %lld задач";
+"digest.more.ideas" = "ещё %lld идей";
+"digest.more.notes" = "ещё %lld заметок";
+
 /* Notes */
 "notes.screen.title" = "Заметки";
 "notes.screen.subtitle_stored" = "%lld сохранено";

@@ -30,6 +30,19 @@
 "task.tag.important" = "Important";
 "task.tag.low_priority" = "Low priority";
 
+/* Daily digest */
+"digest.title" = "Daily digest";
+"digest.summary.quiet" = "A quiet line in your day. Nothing new to carry—just breathing room.";
+"digest.summary.tasks_only" = "%lld tasks are in focus today, urgent and important first.";
+"digest.summary.ideas_notes_only" = "%lld new ideas or notes landed today—glimpses below.";
+"digest.summary.mixed" = "A gentle snapshot: %lld tasks, %lld ideas, and %lld notes from today.";
+"digest.section.tasks" = "Task focus";
+"digest.section.ideas" = "Ideas";
+"digest.section.notes" = "Notes";
+"digest.more.tasks" = "+%lld more tasks";
+"digest.more.ideas" = "+%lld more ideas";
+"digest.more.notes" = "+%lld more notes";
+
 /* Notes */
 "notes.screen.title" = "Notes";
 "notes.screen.subtitle_stored" = "%lld stored";
