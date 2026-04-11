@@ -19,77 +19,88 @@ struct CapturePreviewScreen: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if !draft.tasks.isEmpty {
-                    section(
-                        title: languageStore.localized("preview.section.tasks"),
-                        systemImage: "checklist",
-                        items: $draft.tasks
-                    )
-                }
+            previewList()
+                .listStyle(.insetGrouped)
+                .navigationTitle(languageStore.localized("preview.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar { previewToolbar() }
+                .safeAreaInset(edge: .bottom) { previewBottomBar() }
+        }
+    }
 
-                if !draft.ideas.isEmpty {
-                    section(
-                        title: languageStore.localized("preview.section.ideas"),
-                        systemImage: "sparkles.rectangle.stack",
-                        items: $draft.ideas
-                    )
-                }
-
-                if !draft.notes.isEmpty {
-                    section(
-                        title: languageStore.localized("preview.section.notes"),
-                        systemImage: "note.text",
-                        items: $draft.notes
-                    )
-                }
-
-                if draft.tasks.isEmpty, draft.ideas.isEmpty, draft.notes.isEmpty {
-                    Text(languageStore.localized("preview.empty"))
-                        .foregroundStyle(.secondary)
-                        .padding(.vertical, 6)
-                }
+    @ViewBuilder
+    private func previewList() -> some View {
+        List {
+            if !draft.tasks.isEmpty {
+                section(
+                    title: languageStore.localized("preview.section.tasks"),
+                    systemImage: "checklist",
+                    items: $draft.tasks
+                )
             }
-            .listStyle(.insetGrouped)
-            .navigationTitle(languageStore.localized("preview.title"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(languageStore.localized("preview.discard")) {
-                        onDiscard()
-                    }
-                }
 
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(languageStore.localized("preview.keep_all")) {
-                        draft.keepAll()
-                    }
-                }
+            if !draft.ideas.isEmpty {
+                section(
+                    title: languageStore.localized("preview.section.ideas"),
+                    systemImage: "sparkles.rectangle.stack",
+                    items: $draft.ideas
+                )
             }
-            .safeAreaInset(edge: .bottom) {
-                HStack(spacing: 12) {
-                    Button {
-                        draft.removeAll()
-                    } label: {
-                        Text(languageStore.localized("preview.remove_all"))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.bordered)
 
-                    Button {
-                        onSave(draft)
-                    } label: {
-                        Text(languageStore.localized("preview.save"))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(draft.keptTasks.isEmpty && draft.keptIdeas.isEmpty && draft.keptNotes.isEmpty)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                .background(.ultraThinMaterial)
+            if !draft.notes.isEmpty {
+                section(
+                    title: languageStore.localized("preview.section.notes"),
+                    systemImage: "note.text",
+                    items: $draft.notes
+                )
+            }
+
+            if draft.tasks.isEmpty, draft.ideas.isEmpty, draft.notes.isEmpty {
+                Text(languageStore.localized("preview.empty"))
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 6)
             }
         }
+    }
+
+    @ToolbarContentBuilder
+    private func previewToolbar() -> some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(languageStore.localized("preview.discard")) {
+                onDiscard()
+            }
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(languageStore.localized("preview.keep_all")) {
+                draft.keepAll()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func previewBottomBar() -> some View {
+        HStack(spacing: 12) {
+            Button {
+                draft.removeAll()
+            } label: {
+                Text(languageStore.localized("preview.remove_all"))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+
+            Button {
+                onSave(draft)
+            } label: {
+                Text(languageStore.localized("preview.save"))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(draft.keptTasks.isEmpty && draft.keptIdeas.isEmpty && draft.keptNotes.isEmpty)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(.ultraThinMaterial)
     }
 
     @ViewBuilder
