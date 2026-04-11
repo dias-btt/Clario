@@ -77,78 +77,96 @@ struct TasksScreen: View {
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
-            VStack(alignment: .leading, spacing: 18) {
-                SectionHeaderView(
-                    title: languageStore.localized("tasks.screen.title"),
-                    subtitle: languageStore.localizedFormat(
-                        "tasks.screen.subtitle_open",
-                        Int64(tasks.filter { !$0.isCompleted }.count)
-                    )
-                )
-
-                DailyDigestCard(summary: digestSummary)
-                    .onAppear { hydrateDigestFromCache() }
-                    .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
-                    .task(id: digestTaskIdentifier) {
-                        digestSummaryText = await DailyDigestSummaryService.summarize(
-                            tasks: tasks,
-                            ideas: ideas,
-                            notes: notes,
-                            languageStore: languageStore,
-                            aiService: aiService
-                        )
-                    }
-                    .animation(.easeOut(duration: 0.22), value: digestData)
-
-                if !tasks.isEmpty {
-                    taskFilterChips
-                }
-
-                if tasks.isEmpty {
-                    EmptyStateView(
-                        title: languageStore.localized("tasks.empty.title"),
-                        message: languageStore.localized("tasks.empty.message"),
-                        systemImage: "checklist.checked"
-                    )
-                } else if filteredTasks.isEmpty {
-                    EmptyStateView(
-                        title: languageStore.localized("tasks.empty.filtered.title"),
-                        message: languageStore.localized("tasks.empty.filtered.message"),
-                        systemImage: "line.3.horizontal.decrease.circle"
-                    )
-                } else {
-                    if !todayTasks.isEmpty {
-                        taskSection(
-                            title: languageStore.localized("tasks.section.today"),
-                            subtitle: languageStore.localized("tasks.section.today_subtitle"),
-                            tasks: todayTasks
-                        )
-                    }
-
-                    if !upcomingTasks.isEmpty {
-                        taskSection(
-                            title: languageStore.localized("tasks.section.next_up"),
-                            subtitle: languageStore.localized("tasks.section.next_up_subtitle"),
-                            tasks: upcomingTasks
-                        )
-                    }
-
-                    if !completedTasks.isEmpty {
-                        taskSection(
-                            title: languageStore.localized("tasks.section.done"),
-                            subtitle: languageStore.localized("tasks.section.done_subtitle"),
-                            tasks: completedTasks
-                        )
-                    }
-                }
-            }
-            .padding(.vertical, 10)
+            tasksScrollContent()
         }
         .scrollClipDisabled()
         .animation(.snappy, value: tasks.count)
         .animation(.snappy, value: ideas.count)
         .animation(.snappy, value: notes.count)
         .animation(.snappy, value: selectedFilter)
+    }
+
+    @ViewBuilder
+    private func tasksScrollContent() -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            tasksScreenHeader()
+            digestCard()
+            tasksMainBody()
+        }
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func tasksScreenHeader() -> some View {
+        SectionHeaderView(
+            title: languageStore.localized("tasks.screen.title"),
+            subtitle: languageStore.localizedFormat(
+                "tasks.screen.subtitle_open",
+                Int64(tasks.filter { !$0.isCompleted }.count)
+            )
+        )
+    }
+
+    @ViewBuilder
+    private func digestCard() -> some View {
+        DailyDigestCard(summary: digestSummary)
+            .onAppear { hydrateDigestFromCache() }
+            .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
+            .task(id: digestTaskIdentifier) {
+                digestSummaryText = await DailyDigestSummaryService.summarize(
+                    tasks: tasks,
+                    ideas: ideas,
+                    notes: notes,
+                    languageStore: languageStore,
+                    aiService: aiService
+                )
+            }
+            .animation(.easeOut(duration: 0.22), value: digestData)
+    }
+
+    @ViewBuilder
+    private func tasksMainBody() -> some View {
+        if !tasks.isEmpty {
+            taskFilterChips
+        }
+
+        if tasks.isEmpty {
+            EmptyStateView(
+                title: languageStore.localized("tasks.empty.title"),
+                message: languageStore.localized("tasks.empty.message"),
+                systemImage: "checklist.checked"
+            )
+        } else if filteredTasks.isEmpty {
+            EmptyStateView(
+                title: languageStore.localized("tasks.empty.filtered.title"),
+                message: languageStore.localized("tasks.empty.filtered.message"),
+                systemImage: "line.3.horizontal.decrease.circle"
+            )
+        } else {
+            if !todayTasks.isEmpty {
+                taskSection(
+                    title: languageStore.localized("tasks.section.today"),
+                    subtitle: languageStore.localized("tasks.section.today_subtitle"),
+                    tasks: todayTasks
+                )
+            }
+
+            if !upcomingTasks.isEmpty {
+                taskSection(
+                    title: languageStore.localized("tasks.section.next_up"),
+                    subtitle: languageStore.localized("tasks.section.next_up_subtitle"),
+                    tasks: upcomingTasks
+                )
+            }
+
+            if !completedTasks.isEmpty {
+                taskSection(
+                    title: languageStore.localized("tasks.section.done"),
+                    subtitle: languageStore.localized("tasks.section.done_subtitle"),
+                    tasks: completedTasks
+                )
+            }
+        }
     }
 
     private var taskFilterChips: some View {
