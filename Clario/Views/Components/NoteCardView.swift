@@ -4,43 +4,56 @@ struct NoteCardView: View {
     let note: NoteItem
     let onDelete: () -> Void
 
-    var body: some View {
-        noteCardStack()
-            .padding(18)
-            .background(
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .fill(Color.white.opacity(0.9))
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(.white.opacity(0.85), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(0.06), radius: 18, y: 10)
-    }
+    @Environment(\.colorScheme) private var colorScheme
 
-    @ViewBuilder
-    private func noteCardStack() -> some View {
-        VStack(alignment: .leading, spacing: 14) {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
             noteCardHeader()
             noteCardBody()
         }
+        .padding(22)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(ClarioPalette.cardSurface(colorScheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(ClarioPalette.cardStroke(colorScheme), lineWidth: 1)
+        )
+        .overlay(alignment: .leading) {
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [ClarioPalette.indigo.opacity(0.5), ClarioPalette.calmGreen.opacity(0.35)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 3)
+                .padding(.vertical, 18)
+                .padding(.leading, 0)
+        }
+        .clarioCardShadow(colorScheme: colorScheme)
     }
 
     @ViewBuilder
     private func noteCardHeader() -> some View {
-        HStack {
-            Text(note.createdAt, format: .dateTime.weekday(.abbreviated).day().month(.abbreviated))
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
+        HStack(alignment: .firstTextBaseline) {
+            Text(note.createdAt, format: .dateTime.weekday(.wide).day().month(.abbreviated))
+                .font(.system(.caption, design: .serif, weight: .semibold))
+                .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
+                .textCase(.uppercase)
+                .tracking(0.6)
 
             Spacer()
 
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 30, height: 30)
-                    .background(Color.black.opacity(0.04), in: Circle())
+                    .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
+                    .frame(width: 32, height: 32)
+                    .background(ClarioPalette.primaryText(colorScheme).opacity(0.06), in: Circle())
             }
             .buttonStyle(.plain)
         }
@@ -49,9 +62,10 @@ struct NoteCardView: View {
     @ViewBuilder
     private func noteCardBody() -> some View {
         Text(note.content)
-            .font(.system(.body, design: .rounded))
-            .foregroundStyle(.primary)
-            .lineSpacing(4)
+            .font(.system(.body, design: .serif))
+            .foregroundStyle(ClarioPalette.primaryText(colorScheme))
+            .lineSpacing(6)
+            .kerning(0.15)
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

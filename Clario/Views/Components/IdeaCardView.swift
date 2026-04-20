@@ -2,28 +2,52 @@ import SwiftUI
 
 struct IdeaCardView: View {
     let idea: IdeaItem
+    let paletteIndex: Int
     let onDelete: () -> Void
 
     @Bindable private var languageStore = AppLanguageStore.shared
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isExpanded = false
 
     var body: some View {
         ideaCardStack()
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ideaCardGradient(), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(cardGradient, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(.white.opacity(0.9), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(ClarioPalette.cardStroke(colorScheme), lineWidth: 1)
             }
-            .shadow(color: Color(red: 0.44, green: 0.39, blue: 0.98).opacity(0.10), radius: 22, y: 12)
-            .rotationEffect(.degrees(isExpanded ? 0 : -0.4))
-            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: accentGlow.opacity(0.22), radius: 20, y: 12)
+            .rotationEffect(.degrees(isExpanded ? 0 : (paletteIndex % 2 == 0 ? -0.6 : 0.6)))
+            .contentShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .onTapGesture {
                 withAnimation(.spring(response: 0.34, dampingFraction: 0.84)) {
                     isExpanded.toggle()
                 }
             }
+    }
+
+    private var accentGlow: Color {
+        let colors = [ClarioPalette.indigo, ClarioPalette.warmAmber, ClarioPalette.calmGreen, ClarioPalette.roseGlow]
+        return colors[paletteIndex % colors.count]
+    }
+
+    private var cardGradient: LinearGradient {
+        let bases: [[Color]] = [
+            [Color(hex: "EEF2FF"), Color(hex: "E0E7FF")],
+            [Color(hex: "ECFDF5"), Color(hex: "D1FAE5")],
+            [Color(hex: "FFF7ED"), Color(hex: "FFEDD5")],
+            [Color(hex: "FDF2F8"), Color(hex: "FCE7F3")]
+        ]
+        let darkBases: [[Color]] = [
+            [ClarioPalette.slateSoft, Color(hex: "312E81").opacity(0.55)],
+            [ClarioPalette.slateSoft, Color(hex: "064E3B").opacity(0.45)],
+            [ClarioPalette.slateSoft, Color(hex: "78350F").opacity(0.4)],
+            [ClarioPalette.slateSoft, Color(hex: "831843").opacity(0.4)]
+        ]
+        let pair = colorScheme == .dark ? darkBases[paletteIndex % darkBases.count] : bases[paletteIndex % bases.count]
+        return LinearGradient(colors: pair, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     @ViewBuilder
@@ -40,17 +64,17 @@ struct IdeaCardView: View {
         HStack {
             Label(languageStore.localized("card.badge.idea"), systemImage: "sparkles")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color(red: 0.48, green: 0.39, blue: 0.97))
+                .foregroundStyle(accentGlow)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 6)
-                .background(Color(red: 0.48, green: 0.39, blue: 0.97).opacity(0.10), in: Capsule())
+                .background(accentGlow.opacity(0.14), in: Capsule())
 
             Spacer()
 
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
             }
             .buttonStyle(.plain)
         }
@@ -59,10 +83,11 @@ struct IdeaCardView: View {
     @ViewBuilder
     private func ideaCardBody() -> some View {
         Text(idea.content)
-            .font(.body.weight(.medium))
-            .foregroundStyle(.primary)
+            .font(.system(.body, design: .rounded, weight: .medium))
+            .foregroundStyle(ClarioPalette.primaryText(colorScheme))
             .multilineTextAlignment(.leading)
-            .lineLimit(isExpanded ? nil : 3)
+            .lineSpacing(3)
+            .lineLimit(isExpanded ? nil : 4)
     }
 
     @ViewBuilder
@@ -70,24 +95,13 @@ struct IdeaCardView: View {
         HStack {
             Text(idea.createdAt, format: .dateTime.month(.abbreviated).day().hour().minute())
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
 
             Spacer()
 
             Image(systemName: isExpanded ? "arrow.up.left.and.arrow.down.right" : "arrow.down.right.and.arrow.up.left")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ClarioPalette.secondaryText(colorScheme).opacity(0.85))
         }
-    }
-
-    private func ideaCardGradient() -> LinearGradient {
-        LinearGradient(
-            colors: [
-                Color.white.opacity(0.96),
-                Color(red: 0.96, green: 0.94, blue: 1.0)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
     }
 }

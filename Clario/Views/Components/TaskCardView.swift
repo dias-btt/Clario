@@ -7,21 +7,51 @@ struct TaskCardView: View {
     let onDelete: () -> Void
 
     @Bindable private var languageStore = AppLanguageStore.shared
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        taskCardRow()
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(task.isCompleted ? Color.white.opacity(0.65) : Color.white.opacity(0.92))
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(.white.opacity(0.8), lineWidth: 1)
-            }
-            .shadow(color: .black.opacity(task.isCompleted ? 0.03 : 0.07), radius: 18, y: 10)
-            .opacity(task.isCompleted ? 0.72 : 1)
-            .scaleEffect(task.isCompleted ? 0.985 : 1)
+        HStack(spacing: 0) {
+            priorityRail()
+            taskCardRow()
+                .padding(16)
+        }
+        .background {
+            RoundedRectangle(cornerRadius: ClarioRadius.card, style: .continuous)
+                .fill(ClarioPalette.cardSurface(colorScheme))
+                .overlay {
+                    RoundedRectangle(cornerRadius: ClarioRadius.card, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    ClarioPalette.indigo.opacity(colorScheme == .dark ? 0.06 : 0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .center
+                            )
+                        )
+                        .opacity(task.isCompleted ? 0 : 1)
+                }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: ClarioRadius.card, style: .continuous)
+                .stroke(ClarioPalette.cardStroke(colorScheme), lineWidth: 1)
+        )
+        .clarioCardShadow(colorScheme: colorScheme)
+        .opacity(task.isCompleted ? 0.68 : 1)
+        .scaleEffect(task.isCompleted ? 0.98 : 1)
+        .offset(x: task.isCompleted ? 4 : 0)
+        .animation(.spring(response: 0.45, dampingFraction: 0.76), value: task.isCompleted)
+    }
+
+    @ViewBuilder
+    private func priorityRail() -> some View {
+        RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(task.priorityTag.railColor)
+            .frame(width: 4)
+            .padding(.vertical, 14)
+            .padding(.leading, 10)
+            .opacity(task.isCompleted ? 0.35 : 1)
     }
 
     @ViewBuilder
@@ -37,10 +67,17 @@ struct TaskCardView: View {
         Button(action: onToggleComplete) {
             ZStack {
                 Circle()
-                    .strokeBorder(task.isCompleted ? Color.clear : Color.secondary.opacity(0.35), lineWidth: 1.5)
+                    .strokeBorder(
+                        task.isCompleted ? Color.clear : ClarioPalette.secondaryText(colorScheme).opacity(0.35),
+                        lineWidth: 1.5
+                    )
                     .background(
                         Circle()
-                            .fill(task.isCompleted ? Color(red: 0.34, green: 0.78, blue: 0.50) : Color.white)
+                            .fill(
+                                task.isCompleted
+                                    ? ClarioPalette.calmGreen
+                                    : ClarioPalette.mist.opacity(colorScheme == .dark ? 0.12 : 1)
+                            )
                     )
 
                 if task.isCompleted {
@@ -50,7 +87,7 @@ struct TaskCardView: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .frame(width: 28, height: 28)
+            .frame(width: 30, height: 30)
         }
         .buttonStyle(.plain)
     }
@@ -67,16 +104,20 @@ struct TaskCardView: View {
     private func taskTitleRow() -> some View {
         HStack(alignment: .top) {
             Text(task.title)
-                .font(.body.weight(.medium))
-                .foregroundStyle(task.isCompleted ? .secondary : .primary)
-                .strikethrough(task.isCompleted, color: .secondary)
-                .animation(.snappy, value: task.isCompleted)
+                .font(.system(.body, design: .rounded, weight: .medium))
+                .foregroundStyle(
+                    task.isCompleted
+                        ? ClarioPalette.secondaryText(colorScheme)
+                        : ClarioPalette.primaryText(colorScheme)
+                )
+                .strikethrough(task.isCompleted, color: ClarioPalette.secondaryText(colorScheme).opacity(0.5))
+                .animation(.spring(response: 0.35, dampingFraction: 0.85), value: task.isCompleted)
 
             Spacer()
 
             Text(task.createdAt, format: .relative(presentation: .named))
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
         }
     }
 
@@ -87,8 +128,8 @@ struct TaskCardView: View {
                 .font(.caption.weight(.semibold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
-                .background(task.priorityTag.labelBackgroundColor, in: Capsule())
-                .foregroundStyle(task.priorityTag.labelForegroundColor)
+                .background(task.priorityTag.pillBackground(colorScheme: colorScheme), in: Capsule())
+                .foregroundStyle(task.priorityTag.pillForeground)
 
             Button(action: onToggleToday) {
                 Label(
@@ -98,8 +139,15 @@ struct TaskCardView: View {
                 .font(.caption.weight(.semibold))
                 .padding(.horizontal, 10)
                 .padding(.vertical, 7)
-                .background(task.isToday ? Color.orange.opacity(0.16) : Color.gray.opacity(0.10), in: Capsule())
-                .foregroundStyle(task.isToday ? Color.orange : .secondary)
+                .background(
+                    task.isToday
+                        ? ClarioPalette.warmAmber.opacity(0.18)
+                        : ClarioPalette.primaryText(colorScheme).opacity(0.06),
+                    in: Capsule()
+                )
+                .foregroundStyle(
+                    task.isToday ? ClarioPalette.warmAmber : ClarioPalette.secondaryText(colorScheme)
+                )
             }
             .buttonStyle(.plain)
 
@@ -108,9 +156,9 @@ struct TaskCardView: View {
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
                     .frame(width: 34, height: 34)
-                    .background(Color.black.opacity(0.04), in: Circle())
+                    .background(ClarioPalette.primaryText(colorScheme).opacity(0.06), in: Circle())
             }
             .buttonStyle(.plain)
         }
@@ -129,18 +177,29 @@ private extension TaskPriorityTag {
         }
     }
 
-    var labelForegroundColor: Color {
+    var pillForeground: Color {
         switch self {
         case .urgent:
-            Color.red.opacity(0.92)
+            ClarioPalette.roseGlow
         case .important:
-            Color.orange
+            ClarioPalette.warmAmber
         case .lowPriority:
-            Color.secondary
+            ClarioPalette.calmGreen.opacity(0.95)
         }
     }
 
-    var labelBackgroundColor: Color {
-        labelForegroundColor.opacity(0.14)
+    func pillBackground(colorScheme: ColorScheme) -> Color {
+        pillForeground.opacity(colorScheme == .dark ? 0.18 : 0.14)
+    }
+
+    var railColor: Color {
+        switch self {
+        case .urgent:
+            ClarioPalette.roseGlow
+        case .important:
+            ClarioPalette.warmAmber
+        case .lowPriority:
+            ClarioPalette.calmGreen
+        }
     }
 }

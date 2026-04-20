@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct IdeasScreen: View {
     @Environment(\.modelContext) private var modelContext
@@ -7,8 +7,8 @@ struct IdeasScreen: View {
     @Query(sort: \IdeaItem.createdAt, order: .reverse) private var ideas: [IdeaItem]
 
     private let columns = [
-        GridItem(.flexible(), spacing: 14),
-        GridItem(.flexible(), spacing: 14)
+        GridItem(.flexible(), spacing: 12, alignment: .top),
+        GridItem(.flexible(), spacing: 12, alignment: .top)
     ]
 
     var body: some View {
@@ -16,16 +16,16 @@ struct IdeasScreen: View {
             ideasScrollContent()
         }
         .scrollClipDisabled()
-        .animation(.snappy, value: ideas.count)
+        .animation(.spring(response: 0.38, dampingFraction: 0.82), value: ideas.count)
     }
 
     @ViewBuilder
     private func ideasScrollContent() -> some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 20) {
             ideasScreenHeader()
             ideasBody()
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -42,21 +42,27 @@ struct IdeasScreen: View {
             EmptyStateView(
                 title: languageStore.localized("ideas.empty.title"),
                 message: languageStore.localized("ideas.empty.message"),
-                systemImage: "lightbulb.max"
+                systemImage: "sparkles"
             )
         } else {
-            LazyVGrid(columns: columns, spacing: 14) {
-                ForEach(ideas) { idea in
-                    IdeaCardView(idea: idea) {
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
+                ForEach(Array(ideas.enumerated()), id: \.element.id) { index, idea in
+                    IdeaCardView(idea: idea, paletteIndex: index) {
                         delete(idea)
                     }
+                    .gridCellColumns(masonrySpan(for: index))
                 }
             }
         }
     }
 
+    /// Light masonry feel: every sixth card spans both columns like a “pin”.
+    private func masonrySpan(for index: Int) -> Int {
+        (index % 6 == 3) ? 2 : 1
+    }
+
     private func delete(_ idea: IdeaItem) {
-        withAnimation(.snappy) {
+        withAnimation(.spring(response: 0.36, dampingFraction: 0.85)) {
             modelContext.delete(idea)
         }
 

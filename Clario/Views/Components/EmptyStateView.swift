@@ -5,39 +5,70 @@ struct EmptyStateView: View {
     let message: String
     let systemImage: String
 
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var breathe = false
+
     var body: some View {
-        emptyStateStack()
-    }
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                ClarioPalette.indigo.opacity(0.35),
+                                ClarioPalette.calmGreen.opacity(0.15),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 10,
+                            endRadius: 56
+                        )
+                    )
+                    .frame(width: 112, height: 112)
+                    .scaleEffect(breathe ? 1.06 : 0.94)
+                    .opacity(0.9)
 
-    @ViewBuilder
-    private func emptyStateStack() -> some View {
-        VStack(spacing: 14) {
-            emptyStateIcon()
-            emptyStateCopy()
+                Image(systemName: systemImage)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [ClarioPalette.indigo, ClarioPalette.calmGreen],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 72, height: 72)
+                    .background(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .fill(ClarioPalette.cardSurface(colorScheme))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                    .stroke(ClarioPalette.cardStroke(colorScheme), lineWidth: 1)
+                            )
+                    )
+                    .shadow(color: ClarioPalette.indigo.opacity(0.12), radius: 18, y: 10)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                    breathe = true
+                }
+            }
+
+            VStack(spacing: 10) {
+                Text(title)
+                    .font(.system(.title3, design: .rounded, weight: .semibold))
+                    .foregroundStyle(ClarioPalette.primaryText(colorScheme))
+                    .multilineTextAlignment(.center)
+
+                Text(message)
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(4)
+                    .frame(maxWidth: 280)
+            }
         }
-        .padding(.vertical, 56)
+        .padding(.vertical, 52)
         .frame(maxWidth: .infinity)
-    }
-
-    @ViewBuilder
-    private func emptyStateIcon() -> some View {
-        Image(systemName: systemImage)
-            .font(.system(size: 30, weight: .semibold))
-            .foregroundStyle(Color(red: 0.42, green: 0.49, blue: 0.98))
-            .frame(width: 68, height: 68)
-            .background(Color.white.opacity(0.9), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .shadow(color: .black.opacity(0.06), radius: 14, y: 10)
-    }
-
-    @ViewBuilder
-    private func emptyStateCopy() -> some View {
-        Text(title)
-            .font(.title3.weight(.semibold))
-
-        Text(message)
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.center)
-            .frame(maxWidth: 260)
     }
 }

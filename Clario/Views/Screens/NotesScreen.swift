@@ -1,5 +1,5 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct NotesScreen: View {
     @Environment(\.modelContext) private var modelContext
@@ -11,16 +11,16 @@ struct NotesScreen: View {
             notesScrollContent()
         }
         .scrollClipDisabled()
-        .animation(.snappy, value: notes.count)
+        .animation(.spring(response: 0.38, dampingFraction: 0.82), value: notes.count)
     }
 
     @ViewBuilder
     private func notesScrollContent() -> some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 20) {
             notesScreenHeader()
             notesBody()
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -37,19 +37,22 @@ struct NotesScreen: View {
             EmptyStateView(
                 title: languageStore.localized("notes.empty.title"),
                 message: languageStore.localized("notes.empty.message"),
-                systemImage: "note.text"
+                systemImage: "text.book.closed.fill"
             )
         } else {
-            ForEach(notes) { note in
-                NoteCardView(note: note) {
-                    delete(note)
+            VStack(spacing: 16) {
+                ForEach(notes) { note in
+                    NoteCardView(note: note) {
+                        delete(note)
+                    }
+                    .transition(.opacity.combined(with: .offset(y: 10)))
                 }
             }
         }
     }
 
     private func delete(_ note: NoteItem) {
-        withAnimation(.snappy) {
+        withAnimation(.spring(response: 0.36, dampingFraction: 0.85)) {
             modelContext.delete(note)
         }
 

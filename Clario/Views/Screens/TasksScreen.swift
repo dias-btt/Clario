@@ -1,17 +1,7 @@
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct TasksScreen: View {
-    private enum TaskFilter: String, CaseIterable, Identifiable {
-        case all
-        case urgent
-        case important
-        case lowPriority
-        case done
-
-        var id: String { rawValue }
-    }
-
     @Environment(\.modelContext) private var modelContext
     @Environment(\.aiService) private var aiService
     @Bindable private var languageStore = AppLanguageStore.shared
@@ -19,7 +9,7 @@ struct TasksScreen: View {
     @Query(sort: \IdeaItem.createdAt, order: .reverse) private var ideas: [IdeaItem]
     @Query(sort: \NoteItem.createdAt, order: .reverse) private var notes: [NoteItem]
 
-    @State private var selectedFilter: TaskFilter = .all
+    @State private var selectedFilter: TaskListFilter = .all
     @State private var digestSummaryText: String?
 
     private var filteredTasks: [TaskItem] {
@@ -57,7 +47,11 @@ struct TasksScreen: View {
         digestSummaryText ?? DailyDigestSummaryService.localSummary(data: digestData, languageStore: languageStore)
     }
 
-    /// Stable id for `.task`: changes when digest input changes (same rules as `DailyDigestFingerprint`).
+    private var digestSpotlightTasks: [TaskItem] {
+        Array(digestData.prioritizedTasks.filter { !$0.isCompleted }.prefix(2))
+    }
+
+    /// Stable id for digest task: changes when digest input changes.
     private var digestTaskIdentifier: String {
         DailyDigestFingerprint.identifier(
             tasks: tasks,
@@ -80,20 +74,20 @@ struct TasksScreen: View {
             tasksScrollContent()
         }
         .scrollClipDisabled()
-        .animation(.snappy, value: tasks.count)
-        .animation(.snappy, value: ideas.count)
-        .animation(.snappy, value: notes.count)
-        .animation(.snappy, value: selectedFilter)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: tasks.count)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: ideas.count)
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: notes.count)
+        .animation(.spring(response: 0.38, dampingFraction: 0.78), value: selectedFilter)
     }
 
     @ViewBuilder
     private func tasksScrollContent() -> some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 22) {
             tasksScreenHeader()
             digestCard()
             tasksMainBody()
         }
-        .padding(.vertical, 10)
+        .padding(.vertical, 8)
     }
 
     @ViewBuilder
@@ -109,32 +103,36 @@ struct TasksScreen: View {
 
     @ViewBuilder
     private func digestCard() -> some View {
-        DailyDigestCard(summary: digestSummary)
-            .onAppear { hydrateDigestFromCache() }
-            .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
-            .task(id: digestTaskIdentifier) {
-                digestSummaryText = await DailyDigestSummaryService.summarize(
-                    tasks: tasks,
-                    ideas: ideas,
-                    notes: notes,
-                    languageStore: languageStore,
-                    aiService: aiService
-                )
-            }
-            .animation(.easeOut(duration: 0.22), value: digestData)
+        DigestCardView(
+            greeting: languageStore.localized("digest.greeting"),
+            summary: digestSummary,
+            spotlightTasks: digestSpotlightTasks
+        )
+        .onAppear { hydrateDigestFromCache() }
+        .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
+        .task(id: digestTaskIdentifier) {
+            digestSummaryText = await DailyDigestSummaryService.summarize(
+                tasks: tasks,
+                ideas: ideas,
+                notes: notes,
+                languageStore: languageStore,
+                aiService: aiService
+            )
+        }
+        .animation(.easeOut(duration: 0.28), value: digestData)
     }
 
     @ViewBuilder
     private func tasksMainBody() -> some View {
         if !tasks.isEmpty {
-            taskFilterChips
+            TaskFilterPillsView(selection: $selectedFilter, title: filterTitle)
         }
 
         if tasks.isEmpty {
             EmptyStateView(
                 title: languageStore.localized("tasks.empty.title"),
                 message: languageStore.localized("tasks.empty.message"),
-                systemImage: "checklist.checked"
+                systemImage: "leaf.fill"
             )
         } else if filteredTasks.isEmpty {
             EmptyStateView(
@@ -169,31 +167,7 @@ struct TasksScreen: View {
         }
     }
 
-    private var taskFilterChips: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(TaskFilter.allCases) { filter in
-                    Button {
-                        selectedFilter = filter
-                    } label: {
-                        Text(filterTitle(filter))
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                selectedFilter == filter ? Color.accentColor.opacity(0.22) : Color.black.opacity(0.05),
-                                in: Capsule()
-                            )
-                            .foregroundStyle(selectedFilter == filter ? Color.accentColor : .primary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.vertical, 2)
-        }
-    }
-
-    private func filterTitle(_ filter: TaskFilter) -> String {
+    private func filterTitle(_ filter: TaskListFilter) -> String {
         switch filter {
         case .all:
             languageStore.localized("tasks.filter.all")
@@ -210,7 +184,7 @@ struct TasksScreen: View {
 
     @ViewBuilder
     private func taskSection(title: String, subtitle: String, tasks: [TaskItem]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             SectionHeaderView(title: title, subtitle: subtitle)
 
             ForEach(tasks) { task in
@@ -220,27 +194,32 @@ struct TasksScreen: View {
                     onToggleToday: { toggleToday(for: task) },
                     onDelete: { delete(task) }
                 )
+                .transition(
+                    .asymmetric(
+                        insertion: .opacity.combined(with: .offset(y: 12)),
+                        removal: .opacity.combined(with: .scale(scale: 0.96)).combined(with: .offset(x: 20))
+                    )
+                )
             }
         }
-        .transition(.opacity.combined(with: .move(edge: .bottom)))
     }
 
     private func toggleCompletion(for task: TaskItem) {
-        withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.78)) {
             task.isCompleted.toggle()
         }
         saveContext()
     }
 
     private func toggleToday(for task: TaskItem) {
-        withAnimation(.snappy) {
+        withAnimation(.spring(response: 0.34, dampingFraction: 0.82)) {
             task.isToday.toggle()
         }
         saveContext()
     }
 
     private func delete(_ task: TaskItem) {
-        withAnimation(.snappy) {
+        withAnimation(.spring(response: 0.36, dampingFraction: 0.88)) {
             modelContext.delete(task)
         }
         saveContext()

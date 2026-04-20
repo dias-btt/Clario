@@ -11,8 +11,8 @@
 /* Tasks */
 "tasks.screen.title" = "Задачи";
 "tasks.screen.subtitle_open" = "%lld открыто";
-"tasks.empty.title" = "Пока нечего делать";
-"tasks.empty.message" = "Запишите мысль выше — задачи появятся здесь автоматически.";
+"tasks.empty.title" = "В голове сейчас тихо… пока что.";
+"tasks.empty.message" = "Зафиксируйте первую мысль — мы превратим её в спокойные, посильные шаги.";
 "tasks.section.today" = "Сегодня";
 "tasks.section.today_subtitle" = "Без перегруза";
 "tasks.section.next_up" = "Далее";
@@ -31,6 +31,8 @@
 "task.tag.low_priority" = "Низкий приоритет";
 
 /* Daily digest */
+"digest.greeting" = "Давайте сегодня без лишнего…";
+"digest.spotlight.title" = "Мягкий фокус";
 "digest.title" = "Дайджест дня";
 "digest.summary.quiet" = "Сегодня тихо. Ничего нового — только немного воздуха между делами.";
 "digest.summary.tasks_only" = "%lld задач в фокусе: сначала срочные и важные.";
@@ -46,14 +48,14 @@
 /* Notes */
 "notes.screen.title" = "Заметки";
 "notes.screen.subtitle_stored" = "%lld сохранено";
-"notes.empty.title" = "Пустая страница";
-"notes.empty.message" = "Общие мысли, которые не задачи и не идеи, появятся здесь аккуратным списком.";
+"notes.empty.title" = "Место для размышлений";
+"notes.empty.message" = "Когда словам не нужен чекбокс — они живут здесь: спокойно, читабельно, только ваши.";
 
 /* Ideas */
 "ideas.screen.title" = "Идеи";
 "ideas.screen.subtitle_captured" = "%lld зафиксировано";
-"ideas.empty.title" = "Пока без идей";
-"ideas.empty.message" = "Идеи из потока сознания окажутся здесь карточками, к которым захочется вернуться.";
+"ideas.empty.title" = "Доска вдохновения ждёт";
+"ideas.empty.message" = "Поймайте искру — мы закрепим её мягким цветом, чтобы ничего важного не потерялось.";
 
 /* Composer */
 "composer.title" = "Второй мозг";
