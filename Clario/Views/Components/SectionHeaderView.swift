@@ -4,21 +4,18 @@ struct SectionHeaderView: View {
     let title: String
     let subtitle: String
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
-        headerRow()
-    }
-
-    @ViewBuilder
-    private func headerRow() -> some View {
-        HStack(alignment: .lastTextBaseline) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(.title3.weight(.bold))
-
-            Spacer()
+                .font(.system(.title2, design: .rounded, weight: .bold))
+                .foregroundStyle(ClarioPalette.primaryText(colorScheme))
 
             Text(subtitle)
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(.secondary)
+                .font(.system(.subheadline, design: .rounded, weight: .medium))
+                .foregroundStyle(ClarioPalette.secondaryText(colorScheme))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

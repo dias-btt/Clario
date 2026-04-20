@@ -11,8 +11,8 @@
 /* Tasks */
 "tasks.screen.title" = "Тапсырмалар";
 "tasks.screen.subtitle_open" = "%lld ашық";
-"tasks.empty.title" = "Әлі іс жоқ";
-"tasks.empty.message" = "Жоғарыдан ой жазыңыз — тапсырмалар мұнда автоматты түрде пайда болады.";
+"tasks.empty.title" = "Ақылда қазір тыныш… әзірше.";
+"tasks.empty.message" = "Алғашқы ойды жазып алыңыз — біз оны тыныш, орындала алатын қадамдарға айналдырамыз.";
 "tasks.section.today" = "Бүгін";
 "tasks.section.today_subtitle" = "Жеңіл ұстаңыз";
 "tasks.section.next_up" = "Келесі";
@@ -31,6 +31,8 @@
 "task.tag.low_priority" = "Төмен басымдық";
 
 /* Daily digest */
+"digest.greeting" = "Бүгін қарапайым ұстайық…";
+"digest.spotlight.title" = "Жұмсақ назар";
 "digest.title" = "Күндік дайджест";
 "digest.summary.quiet" = "Бүгін тыныш. Жаңа ештеңе жоқ — тек тыныш тыныс.";
 "digest.summary.tasks_only" = "Бүгін %lld тапсырма назарда: алдымен шұғыл мен маңызды.";
@@ -46,14 +48,14 @@
 /* Notes */
 "notes.screen.title" = "Ескертулер";
 "notes.screen.subtitle_stored" = "%lld сақталған";
-"notes.empty.title" = "Тыныш бет";
-"notes.empty.message" = "Тапсырма да, идея да емес жалпы ойлар мұнда тәртіппен көрінеді.";
+"notes.empty.title" = "Ойға орын";
+"notes.empty.message" = "Сөздерге белгіше керек емес кезде — олар мұнда: асықпай, оқуға ыңғайлы, тек сіздікі.";
 
 /* Ideas */
 "ideas.screen.title" = "Идеялар";
 "ideas.screen.subtitle_captured" = "%lld жазылған";
-"ideas.empty.title" = "Әлі ұшқын жоқ";
-"ideas.empty.message" = "Ой ағынындағы идеялар осында кіші карточкалар ретінде пайда болады.";
+"ideas.empty.title" = "Шабыт тақтасы сізді күтеді";
+"ideas.empty.message" = "Ұшқынды ұстаңыз — біз оны жұмсақ түспен бекітеміз, еш маңыздысы жоғалмасын.";
 
 /* Composer */
 "composer.title" = "Екінші ми";
