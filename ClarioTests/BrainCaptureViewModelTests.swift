@@ -16,6 +16,8 @@ final class ControllableAIService: AIService {
     var mode: Mode
     private(set) var processCallCount = 0
     private(set) var receivedInputs: [String] = []
+    /// Number of suspended requests whose calling task was cancelled by the time they were resumed.
+    private(set) var observedCancellations = 0
     private var pending: [CheckedContinuation<AIResult, Error>] = []
 
     init(mode: Mode) {
@@ -31,7 +33,14 @@ final class ControllableAIService: AIService {
         case let .immediate(result):
             return try result.get()
         case .suspended:
-            return try await withCheckedThrowingContinuation { pending.append($0) }
+            let result: Result<AIResult, Error>
+            do {
+                result = .success(try await withCheckedThrowingContinuation { pending.append($0) })
+            } catch {
+                result = .failure(error)
+            }
+            if Task.isCancelled { observedCancellations += 1 }
+            return try result.get()
         }
     }
 
@@ -177,32 +186,87 @@ struct BrainCaptureViewModelTests {
         #expect(viewModel.canSubmit)
     }
 
-    @Test("Persistence failure keeps the draft input, reports an error, and leaves no unsaved inserts behind")
+    @Test("Persistence failure keeps input, leaves no pending draft inserts, and preserves unrelated changes")
     func persistenceFailure() async throws {
         let container = try makeContainer()
         let context = container.mainContext
         let saveSwitch = ContextSaveSwitch()
-        saveSwitch.shouldFail = true
         let viewModel = BrainCaptureViewModel(
             aiService: ControllableAIService(mode: .immediate(.success(sampleResult))),
             saveContext: { try saveSwitch.save($0) }
         )
+
+        // Unrelated state: one saved task, then an unsaved edit to it and an unsaved unrelated note.
+        let existing = TaskItem(title: "Existing", priorityTag: .important)
+        context.insert(existing)
+        try context.save()
+        existing.title = "Existing (edited)"
+        let unrelatedNote = NoteItem(content: "Unrelated pending note")
+        context.insert(unrelatedNote)
+
         viewModel.inputText = originalInput
         let draft = try #require(await viewModel.submit())
 
-        let saved = viewModel.persist(draft, in: context)
+        saveSwitch.shouldFail = true
+        #expect(viewModel.persist(draft, in: context) == false)
 
-        #expect(saved == false)
+        // Error surfaced, input kept.
         #expect(viewModel.saveErrorMessage == "Simulated disk full")
         #expect(viewModel.inputText == originalInput)
-        #expect(try counts(in: context) == (0, 0, 0), "Failed inserts must not linger for a later autosave")
 
-        // Retrying the same draft after the problem is resolved saves exactly one copy.
+        // No draft items left as net pending inserts. SwiftData keeps an inserted-then-deleted model in both
+        // the inserted and deleted sets until the next save, so assert on the net effect.
+        let deletedIDs = Set(context.deletedModelsArray.map(\.persistentModelID))
+        let netPendingInserts = context.insertedModelsArray.filter { !deletedIDs.contains($0.persistentModelID) }
+        #expect(netPendingInserts.count == 1)
+        #expect((netPendingInserts.first as? NoteItem)?.content == "Unrelated pending note")
+        #expect(try counts(in: context) == (1, 0, 1))
+
+        // Unrelated pending changes were not rolled back.
+        #expect(existing.title == "Existing (edited)")
+        #expect(context.hasChanges)
+
+        // A later, unrelated save (e.g. autosave) must not persist the failed draft items.
         saveSwitch.shouldFail = false
+        try context.save()
+        #expect(context.insertedModelsArray.isEmpty)
+        #expect(context.deletedModelsArray.isEmpty)
+        #expect(context.hasChanges == false)
+        let storeAfterUnrelatedSave = ModelContext(container)
+        #expect(try counts(in: storeAfterUnrelatedSave) == (1, 0, 1))
+        #expect(try storeAfterUnrelatedSave.fetch(FetchDescriptor<TaskItem>()).map(\.title) == ["Existing (edited)"])
+
+        // Retrying the same draft saves exactly one copy of each item.
         #expect(viewModel.persist(draft, in: context))
-        #expect(try counts(in: context) == (2, 1, 1))
+        #expect(context.hasChanges == false)
+        let store = ModelContext(container)
+        let titles = try store.fetch(FetchDescriptor<TaskItem>()).map(\.title).sorted()
+        #expect(titles == ["Call the bank", "Existing (edited)", "Read chapter 3"])
+        #expect(try counts(in: store) == (3, 1, 2))
         #expect(viewModel.saveErrorMessage == nil)
         #expect(viewModel.inputText.isEmpty)
+    }
+
+    @Test("Edits made while AI is processing survive a successful save")
+    func editsDuringProcessingSurviveSave() async throws {
+        let container = try makeContainer()
+        let context = container.mainContext
+        let service = ControllableAIService(mode: .suspended)
+        let viewModel = BrainCaptureViewModel(aiService: service)
+        viewModel.inputText = originalInput
+
+        let submission = Task { await viewModel.submit() }
+        try await service.waitForPending(1)
+
+        let newerText = originalInput + " Also: book dentist."
+        viewModel.inputText = newerText
+        service.resumeOldest(with: .success(sampleResult))
+        let draft = try #require(await submission.value)
+
+        #expect(draft.sourceText == originalInput.trimmingCharacters(in: .whitespacesAndNewlines))
+        #expect(viewModel.persist(draft, in: context))
+        #expect(viewModel.inputText == newerText, "Newer edits must not be cleared by saving an older draft")
+        #expect(try counts(in: context) == (2, 1, 1))
     }
 
     @Test("A second submission while one is in flight is ignored")
@@ -303,6 +367,94 @@ struct BrainCaptureViewModelTests {
         #expect(await task.value == nil)
         #expect(viewModel.isProcessing == false)
         #expect(viewModel.errorMessage == nil)
+    }
+
+    @Test("UI submission delivers the draft once and becomes idle")
+    func startSubmissionDeliversDraft() async throws {
+        let service = ControllableAIService(mode: .suspended)
+        let viewModel = BrainCaptureViewModel(aiService: service)
+        viewModel.inputText = originalInput
+        var delivered: [CaptureDraft] = []
+
+        #expect(viewModel.startSubmission { delivered.append($0) })
+        #expect(viewModel.hasActiveSubmission)
+        let task = try #require(viewModel.submissionTask)
+        try await service.waitForPending(1)
+
+        service.resumeOldest(with: .success(sampleResult))
+        await task.value
+
+        #expect(delivered.count == 1)
+        #expect(viewModel.hasActiveSubmission == false)
+        #expect(viewModel.canSubmit)
+    }
+
+    @Test("Dismissal cancels immediately: a result arriving afterwards is never delivered")
+    func dismissalBeforeLateResult() async throws {
+        let service = ControllableAIService(mode: .suspended)
+        let viewModel = BrainCaptureViewModel(aiService: service)
+        viewModel.inputText = originalInput
+        var delivered = 0
+
+        viewModel.startSubmission { _ in delivered += 1 }
+        let task = try #require(viewModel.submissionTask)
+        try await service.waitForPending(1)
+
+        // Dismissal begins (Close tapped / isPresented flips to false).
+        viewModel.cancelSubmission()
+        #expect(viewModel.hasActiveSubmission == false)
+
+        service.resumeOldest(with: .success(sampleResult))
+        await task.value
+
+        #expect(delivered == 0)
+        #expect(service.observedCancellations == 1, "The in-flight request's task must be cancelled")
+        #expect(viewModel.errorMessage == nil)
+        #expect(viewModel.inputText == originalInput)
+    }
+
+    @Test("Cancelling before the submission task starts does not call the AI service")
+    func cancelBeforeTaskStarts() async throws {
+        let service = ControllableAIService(mode: .immediate(.success(sampleResult)))
+        let viewModel = BrainCaptureViewModel(aiService: service)
+        viewModel.inputText = originalInput
+        var delivered = 0
+
+        viewModel.startSubmission { _ in delivered += 1 }
+        let task = try #require(viewModel.submissionTask)
+        viewModel.cancelSubmission()
+        await task.value
+
+        #expect(delivered == 0)
+        #expect(service.processCallCount == 0)
+        #expect(viewModel.isProcessing == false)
+    }
+
+    @Test("Rapid repeated taps start only one UI submission, and cancellation targets it")
+    func rapidTapsStartOneSubmission() async throws {
+        let service = ControllableAIService(mode: .suspended)
+        let viewModel = BrainCaptureViewModel(aiService: service)
+        viewModel.inputText = originalInput
+        var delivered = 0
+
+        // Synchronous back-to-back taps, before the first task has run and set isProcessing.
+        #expect(viewModel.startSubmission { _ in delivered += 1 })
+        let active = try #require(viewModel.submissionTask)
+        #expect(viewModel.startSubmission { _ in delivered += 100 } == false)
+        #expect(viewModel.startSubmission { _ in delivered += 100 } == false)
+        #expect(viewModel.canSubmit == false)
+
+        try await service.waitForPending(1)
+        for _ in 0 ..< 50 { await Task.yield() }
+        #expect(service.processCallCount == 1)
+
+        viewModel.cancelSubmission()
+        service.resumeOldest(with: .success(sampleResult))
+        await active.value
+
+        #expect(service.observedCancellations == 1)
+        #expect(delivered == 0)
+        #expect(viewModel.canSubmit)
     }
 
     @Test("Cancellation errors are recognised, ordinary failures are not")

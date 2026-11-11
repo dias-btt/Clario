@@ -8,7 +8,7 @@ import SwiftUI
 final class BrainCaptureViewModel {
     typealias ContextSaver = @MainActor (ModelContext) throws -> Void
 
-    /// The user's original capture text. Only cleared after the resulting draft is saved successfully.
+    /// The user's capture text. Only cleared after a successful save, and only if it still matches the saved draft's source.
     var inputText = ""
     var isProcessing = false
     /// AI processing error, shown in the composer.
@@ -20,6 +20,9 @@ final class BrainCaptureViewModel {
     private let saveContext: ContextSaver
     /// Identifies the in-flight submission. Results from any other (stale or cancelled) submission are ignored.
     private var activeSubmissionID: UUID?
+    /// The single UI-initiated submission task (see `startSubmission`). Cancelled by `cancelSubmission()`.
+    private(set) var submissionTask: Task<Void, Never>?
+    private var submissionTaskID: UUID?
 
     init(
         aiService: AIService,
@@ -29,8 +32,35 @@ final class BrainCaptureViewModel {
         self.saveContext = saveContext
     }
 
+    /// True from the moment a UI submission starts until it finishes or is cancelled.
+    var hasActiveSubmission: Bool {
+        submissionTask != nil || isProcessing
+    }
+
     var canSubmit: Bool {
-        !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isProcessing
+        !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !isProcessing && submissionTask == nil
+    }
+
+    /// Starts the UI submission. At most one can be active: further calls return `false` until it finishes or
+    /// `cancelSubmission()` is called. `onDraft` is invoked only if the submission is still active when the result
+    /// arrives — never after cancellation/dismissal.
+    @discardableResult
+    func startSubmission(onDraft: @escaping @MainActor (CaptureDraft) -> Void) -> Bool {
+        guard canSubmit else { return false }
+
+        let taskID = UUID()
+        submissionTaskID = taskID
+        submissionTask = Task { [weak self] in
+            guard let self else { return }
+            let draft = await self.submit()
+            guard self.submissionTaskID == taskID else { return }
+            self.submissionTask = nil
+            self.submissionTaskID = nil
+            if let draft, !Task.isCancelled {
+                onDraft(draft)
+            }
+        }
+        return true
     }
 
     /// Sends the current input to the AI service and returns a draft for review.
@@ -38,7 +68,7 @@ final class BrainCaptureViewModel {
     /// Returns `nil` (without an error) for empty input, duplicate submissions while one is in flight,
     /// cancellation, or results that arrive after `cancelSubmission()`. `inputText` is never modified here.
     func submit() async -> CaptureDraft? {
-        guard !isProcessing else { return nil }
+        guard !isProcessing, !Task.isCancelled else { return nil }
 
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
@@ -58,7 +88,7 @@ final class BrainCaptureViewModel {
         do {
             let result = try await aiService.process(input: text)
             guard activeSubmissionID == submissionID, !Task.isCancelled else { return nil }
-            return CaptureDraft(result: result)
+            return CaptureDraft(result: result, sourceText: text)
         } catch {
             guard activeSubmissionID == submissionID, !Task.isCancelled, !Self.isCancellation(error) else {
                 return nil
@@ -68,8 +98,12 @@ final class BrainCaptureViewModel {
         }
     }
 
-    /// Abandons the in-flight submission (e.g. the composer was dismissed). Any late result is discarded.
+    /// Abandons the in-flight submission (e.g. the composer is being dismissed). Takes effect synchronously:
+    /// the active task is cancelled and any late result or error is discarded.
     func cancelSubmission() {
+        submissionTask?.cancel()
+        submissionTask = nil
+        submissionTaskID = nil
         activeSubmissionID = nil
         isProcessing = false
     }
@@ -84,9 +118,10 @@ final class BrainCaptureViewModel {
 
     /// Inserts the kept draft items and saves them.
     ///
-    /// On success the original input is cleared and `true` is returned. On failure the items inserted here
-    /// are removed from the context again (so a retry or a later autosave cannot create duplicates),
-    /// `inputText` is preserved, `saveErrorMessage` is set, and `false` is returned.
+    /// On success `true` is returned, and the input is cleared only if it still matches the text the draft was
+    /// generated from (edits made while the AI was processing are kept). On failure only the items inserted here
+    /// are removed from the context again (so a retry or a later autosave cannot create duplicates; unrelated
+    /// pending changes are left untouched), `inputText` is preserved, `saveErrorMessage` is set, and `false` is returned.
     @discardableResult
     func persist(_ draft: CaptureDraft, in modelContext: ModelContext) -> Bool {
         var inserted: [any PersistentModel] = []
@@ -119,7 +154,9 @@ final class BrainCaptureViewModel {
 
         saveErrorMessage = nil
         errorMessage = nil
-        inputText = ""
+        if inputText.trimmingCharacters(in: .whitespacesAndNewlines) == draft.sourceText {
+            inputText = ""
+        }
         return true
     }
 

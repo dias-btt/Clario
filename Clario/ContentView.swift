@@ -23,7 +23,6 @@ struct ContentView: View {
     @State private var selectedTab = AppTab.tasks
     @State private var isComposerPresented = false
     @State private var draft: CaptureDraft?
-    @State private var submitTask: Task<Void, Never>?
 
     init(viewModel: BrainCaptureViewModel) {
         _viewModel = State(initialValue: viewModel)
@@ -36,10 +35,14 @@ struct ContentView: View {
         )
     }
 
+    /// Invalidates any in-flight AI request. Called synchronously as soon as dismissal begins.
     private func cancelPendingSubmission() {
-        submitTask?.cancel()
-        submitTask = nil
         viewModel.cancelSubmission()
+    }
+
+    private func dismissComposer() {
+        cancelPendingSubmission()
+        isComposerPresented = false
     }
 
     var body: some View {
@@ -97,24 +100,28 @@ struct ContentView: View {
                 }
             }
             .environment(\.locale, Locale(identifier: languageStore.code))
+            .onChange(of: isComposerPresented) { _, isPresented in
+                if !isPresented { cancelPendingSubmission() }
+            }
             .sheet(isPresented: $isComposerPresented, onDismiss: cancelPendingSubmission) {
                 NavigationStack {
                     CaptureComposerView(viewModel: viewModel) {
-                        guard viewModel.canSubmit else { return }
-                        submitTask = Task {
-                            if let result = await viewModel.submit() {
-                                draft = result
-                            }
+                        viewModel.startSubmission { result in
+                            // Never present a result once the composer is going away.
+                            guard isComposerPresented else { return }
+                            draft = result
                         }
                     }
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button(languageStore.localized("button.close")) {
-                                isComposerPresented = false
+                                dismissComposer()
                             }
                         }
                     }
                 }
+                // While AI is processing, dismissal goes through Close, which cancels before dismissing.
+                .interactiveDismissDisabled(viewModel.hasActiveSubmission)
                 .sheet(item: $draft) { initial in
                     CapturePreviewScreen(
                         initialDraft: initial,
@@ -126,7 +133,7 @@ struct ContentView: View {
                             // Only dismiss after a confirmed save; on failure the preview keeps the edited draft.
                             guard viewModel.persist(final, in: modelContext) else { return }
                             draft = nil
-                            isComposerPresented = false
+                            dismissComposer()
                         }
                     )
                     .alert(
