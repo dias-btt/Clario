@@ -72,7 +72,7 @@
 "task.schedule.later" = "Позже";
 
 /* AI errors */
-"ai.error.missing_api_key" = "Ключ OpenAI API не найден. Добавьте OPENAI_API_KEY в переменные окружения или Info.plist.";
+"ai.error.missing_api_key" = "Ключ OpenAI API не найден. Для локальной разработки задайте OPENAI_API_KEY в переменных окружения схемы Run в Xcode (только Debug-сборки).";
 "ai.error.invalid_response" = "OpenAI вернул неожиданный ответ.";
 "ai.error.network" = "Ошибка сети: %@";
 "ai.error.request_failed_detail" = "Ошибка OpenAI %d: %@";
