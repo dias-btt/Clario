@@ -217,17 +217,30 @@ private struct OpenAIDigestChatRequest: Encodable {
     }
 }
 
-private enum RuntimeOpenAIConfiguration {
+/// Resolves the OpenAI API key for local development only.
+///
+/// Security policy:
+/// - The key is never read from `Info.plist`, build settings, or any other bundled resource,
+///   so a developer-owned key cannot be compiled into a distributed build.
+/// - In DEBUG builds the key may come from the `OPENAI_API_KEY` process environment variable,
+///   which Xcode injects only when launching from a (git-ignored) local scheme.
+/// - In non-DEBUG builds no key is resolved; callers receive `AIServiceError.missingAPIKey`.
+///   Production builds must obtain credentials from a backend/proxy instead.
+enum RuntimeOpenAIConfiguration {
+    static let environmentVariableName = "OPENAI_API_KEY"
+
     static var apiKey: String {
-        if let environmentKey = ProcessInfo.processInfo.environment["OPENAI_API_KEY"], !environmentKey.isEmpty {
-            return environmentKey
-        }
+        resolveAPIKey(environment: ProcessInfo.processInfo.environment)
+    }
 
-        if let infoPlistKey = Bundle.main.object(forInfoDictionaryKey: "OPENAI_API_KEY") as? String, !infoPlistKey.isEmpty {
-            return infoPlistKey
-        }
-
+    static func resolveAPIKey(environment: [String: String]) -> String {
+        #if DEBUG
+        let value = environment[environmentVariableName]?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return value
+        #else
         return ""
+        #endif
     }
 }
 

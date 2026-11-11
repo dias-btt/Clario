@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Xcode per-user state (local schemes may hold environment variables such as OPENAI_API_KEY)
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.xcscmblueprint
+*.xccheckout
+
+# Local secrets / private configuration — never commit
+*.env
+.env*
+!.env.example
+Secrets.xcconfig
+*.secrets.xcconfig
+Config/Local*.xcconfig
+*.p8
+*.p12
+*.mobileprovision

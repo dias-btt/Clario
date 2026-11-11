@@ -72,7 +72,7 @@
 "task.schedule.later" = "Кейінірек";
 
 /* AI errors */
-"ai.error.missing_api_key" = "OpenAI API кілті табылмады. OPENAI_API_KEY айнымалысын немесе Info.plist қосыңыз.";
+"ai.error.missing_api_key" = "OpenAI API кілті табылмады. Жергілікті әзірлеу үшін Xcode Run схемасының орта айнымалыларына OPENAI_API_KEY қосыңыз (тек Debug құрастырулары).";
 "ai.error.invalid_response" = "OpenAI күтпеген жауап қайтарды.";
 "ai.error.network" = "Желі қатесі: %@";
 "ai.error.request_failed_detail" = "OpenAI қатесі %d: %@";

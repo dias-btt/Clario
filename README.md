@@ -17,11 +17,17 @@ Clario is an iOS app that helps you capture unstructured thoughts and turn them 
 ## Setup
 
 1. Clone the repository and open `Clario.xcodeproj` in Xcode.
-2. Provide your API key in one of these ways (do **not** commit secrets):
-   - **Environment variable** — set `OPENAI_API_KEY` for the Run scheme in Xcode, or in your shell when launching from the command line.
-   - **Info.plist** — add a key `OPENAI_API_KEY` with your key as the value (keep this file out of version control if it contains real credentials).
+2. Provide your **own** OpenAI API key for local development (never commit it):
+   - In Xcode choose **Product → Scheme → Edit Scheme… → Run → Arguments → Environment Variables**.
+   - Add `OPENAI_API_KEY` with your key as the value.
+   - Leave the scheme **unshared** ("Shared" unchecked). Unshared schemes live under `xcuserdata/`, which is git-ignored. A shared scheme is written to `xcshareddata/` and **would be committed**.
 
-The app reads the key from the environment first, then from `Info.plist` (see `OpenAIService` / runtime configuration).
+How the key is resolved (see `RuntimeOpenAIConfiguration` in `Clario/Services/OpenAIService.swift`):
+
+- **Debug builds:** the key is read only from the `OPENAI_API_KEY` process environment variable. Xcode sets this variable only when it launches the app; it is not stored in the app binary.
+- **Release builds** (Archive, TestFlight, App Store): no key is resolved and AI features report a missing-key error. Builds never read a key from `Info.plist`, build settings, or any other bundled resource.
+
+Do **not** put API keys in `Info.plist`, `project.pbxproj` build settings (`INFOPLIST_KEY_*`), or a shared scheme. Anything in those files ends up in the repository and/or the shipped app bundle, where anyone can extract it.
 
 ## Architecture (short)
 
@@ -58,7 +64,10 @@ Replace `<Your Simulator>` with a simulator name listed by `xcrun simctl list de
 
 ## Security note
 
-Treat API keys like passwords: use Xcode scheme environment variables or a local, untracked `Info.plist` override. Rotate any key that was ever committed to a repository.
+- Treat API keys like passwords. Use only your own key, and only through the Debug scheme environment variable described above.
+- Mobile apps cannot keep a secret. A production release must not embed a developer-owned OpenAI key. Route AI requests through a backend or proxy you control, which holds the key and applies authentication and rate limits.
+- `.gitignore` does not affect files that are already tracked. Before committing, check `git diff --cached` for credentials.
+- If a key is ever committed, revoke it immediately in the OpenAI dashboard. Removing it in a later commit does not remove it from Git history.
 
 ## License
 
