@@ -23,9 +23,23 @@ struct ContentView: View {
     @State private var selectedTab = AppTab.tasks
     @State private var isComposerPresented = false
     @State private var draft: CaptureDraft?
+    @State private var submitTask: Task<Void, Never>?
 
     init(viewModel: BrainCaptureViewModel) {
         _viewModel = State(initialValue: viewModel)
+    }
+
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(
+            get: { viewModel.saveErrorMessage != nil },
+            set: { if !$0 { viewModel.clearSaveError() } }
+        )
+    }
+
+    private func cancelPendingSubmission() {
+        submitTask?.cancel()
+        submitTask = nil
+        viewModel.cancelSubmission()
     }
 
     var body: some View {
@@ -83,11 +97,14 @@ struct ContentView: View {
                 }
             }
             .environment(\.locale, Locale(identifier: languageStore.code))
-            .sheet(isPresented: $isComposerPresented) {
+            .sheet(isPresented: $isComposerPresented, onDismiss: cancelPendingSubmission) {
                 NavigationStack {
                     CaptureComposerView(viewModel: viewModel) {
-                        Task {
-                            draft = await viewModel.submit()
+                        guard viewModel.canSubmit else { return }
+                        submitTask = Task {
+                            if let result = await viewModel.submit() {
+                                draft = result
+                            }
                         }
                     }
                     .toolbar {
@@ -102,14 +119,29 @@ struct ContentView: View {
                     CapturePreviewScreen(
                         initialDraft: initial,
                         onDiscard: {
+                            // The original input stays in the composer.
                             draft = nil
                         },
                         onSave: { final in
-                            viewModel.persist(final, in: modelContext)
+                            // Only dismiss after a confirmed save; on failure the preview keeps the edited draft.
+                            guard viewModel.persist(final, in: modelContext) else { return }
                             draft = nil
                             isComposerPresented = false
                         }
                     )
+                    .alert(
+                        languageStore.localized("preview.save_error.title"),
+                        isPresented: saveErrorBinding
+                    ) {
+                        Button(languageStore.localized("button.ok"), role: .cancel) {
+                            viewModel.clearSaveError()
+                        }
+                    } message: {
+                        Text(languageStore.localizedFormat(
+                            "preview.save_error.message",
+                            (viewModel.saveErrorMessage ?? "") as NSString
+                        ))
+                    }
                 }
             }
         }

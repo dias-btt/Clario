@@ -7,6 +7,7 @@
 "accessibility.new_capture" = "Жаңа жазба";
 "accessibility.language_menu" = "Тіл таңдау";
 "button.close" = "Жабу";
+"button.ok" = "OK";
 
 /* Tasks */
 "tasks.screen.title" = "Тапсырмалар";
@@ -97,6 +98,8 @@
 "preview.discard" = "Болдырмау";
 "preview.delete" = "Жою";
 "preview.empty" = "Қарауға ештеңе жоқ.";
+"preview.save_error.title" = "Сақтау мүмкін болмады";
+"preview.save_error.message" = "Жазба сақталмады, бірақ ештеңе жоғалған жоқ. Қайталап көріңіз.\n\n%@";
 
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "ModelContainer құру мүмкін болмады: %@";

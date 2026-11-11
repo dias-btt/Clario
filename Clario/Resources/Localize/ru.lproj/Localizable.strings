@@ -7,6 +7,7 @@
 "accessibility.new_capture" = "Новая запись";
 "accessibility.language_menu" = "Выбор языка";
 "button.close" = "Закрыть";
+"button.ok" = "OK";
 
 /* Tasks */
 "tasks.screen.title" = "Задачи";
@@ -97,6 +98,8 @@
 "preview.discard" = "Отменить";
 "preview.delete" = "Удалить";
 "preview.empty" = "Пока нечего просматривать.";
+"preview.save_error.title" = "Не удалось сохранить";
+"preview.save_error.message" = "Запись не сохранена, но ничего не потеряно. Попробуйте ещё раз.\n\n%@";
 
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "Не удалось создать ModelContainer: %@";
