@@ -58,6 +58,14 @@ enum AIServiceError: LocalizedError {
             return l.localized("ai.error.malformed_json")
         }
     }
+
+    /// True when `error` represents a cancelled request rather than a genuine AI/network failure.
+    static func isCancellation(_ error: Error) -> Bool {
+        if error is CancellationError { return true }
+        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
+        if case let AIServiceError.network(underlying) = error { return isCancellation(underlying) }
+        return false
+    }
 }
 
 enum AIResponseParser {

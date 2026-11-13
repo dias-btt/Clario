@@ -26,12 +26,21 @@ final class AppLanguageStore {
     }
 
     func localized(_ key: String) -> String {
-        Self.bundle(for: code).localizedString(forKey: key, value: nil, table: nil)
+        Self.localized(key, languageCode: code)
     }
 
     func localizedFormat(_ key: String, _ arguments: CVarArg...) -> String {
-        let format = localized(key)
-        return String(format: format, locale: Locale(identifier: code), arguments: Array(arguments))
+        Self.localizedFormat(key, languageCode: code, arguments: arguments)
+    }
+
+    /// Localizes `key` for an explicit language code (no dependency on the shared, persisted selection).
+    static func localized(_ key: String, languageCode: String) -> String {
+        bundle(for: languageCode).localizedString(forKey: key, value: nil, table: nil)
+    }
+
+    static func localizedFormat(_ key: String, languageCode: String, arguments: [CVarArg]) -> String {
+        let format = localized(key, languageCode: languageCode)
+        return String(format: format, locale: Locale(identifier: languageCode), arguments: arguments)
     }
 
     private static func bundle(for code: String) -> Bundle {

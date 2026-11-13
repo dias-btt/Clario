@@ -161,9 +161,6 @@ final class BrainCaptureViewModel {
     }
 
     static func isCancellation(_ error: Error) -> Bool {
-        if error is CancellationError { return true }
-        if let urlError = error as? URLError, urlError.code == .cancelled { return true }
-        if case let AIServiceError.network(underlying) = error { return isCancellation(underlying) }
-        return false
+        AIServiceError.isCancellation(error)
     }
 }
