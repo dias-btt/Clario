@@ -71,7 +71,7 @@ struct CaptureComposerView: View {
             TextEditor(text: $viewModel.inputText)
                 .scrollContentBackground(.hidden)
                 .font(.system(.body, design: .rounded))
-                .frame(minHeight: 96, maxHeight: 132)
+                .frame(maxWidth: .infinity, minHeight: 96, maxHeight: .infinity)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
                 .background(Color.clear)
