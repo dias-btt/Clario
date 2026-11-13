@@ -38,10 +38,17 @@ enum DailyDigestBuilder {
             guard !task.isCompleted else { return false }
             return task.isToday || calendar.isDate(task.createdAt, inSameDayAs: now)
         }
-        .sorted { priorityRank($0.priorityTag) < priorityRank($1.priorityTag) }
+        .sorted { lhs, rhs in
+            let lhsRank = priorityRank(lhs.priorityTag)
+            let rhsRank = priorityRank(rhs.priorityTag)
+            if lhsRank != rhsRank { return lhsRank < rhsRank }
+            // Within a priority, newest first (matches the screen's query order) for a deterministic result.
+            return lhs.createdAt > rhs.createdAt
+        }
 
-        let allIdeasToday = ideas.filter { calendar.isDateInToday($0.createdAt) }
-        let allNotesToday = notes.filter { calendar.isDateInToday($0.createdAt) }
+        // Use the injected calendar and `now` (not `isDateInToday`) so "today" is consistent everywhere.
+        let allIdeasToday = ideas.filter { calendar.isDate($0.createdAt, inSameDayAs: now) }
+        let allNotesToday = notes.filter { calendar.isDate($0.createdAt, inSameDayAs: now) }
 
         return DailyDigestData(
             prioritizedTasks: Array(openToday.prefix(maxTasks)),
@@ -112,51 +119,77 @@ enum DailyDigestBuilder {
     }
 }
 
-// MARK: - Daily digest summary (cache + OpenAI + local fallback)
+// MARK: - Daily digest summary (cache + AI + local fallback)
 
-enum DailyDigestSummaryService {
-    static func summarize(
+/// Produces the digest summary text. Only the most recently started request may publish a result or write
+/// the cache, so cancelled or superseded requests can never overwrite newer UI state or newer cache entries.
+final class DailyDigestSummaryService {
+    private let cache: DailyDigestCache
+    private var latestRequestID = 0
+
+    init(cache: DailyDigestCache = .standard) {
+        self.cache = cache
+    }
+
+    func cachedSummary(forFingerprint fingerprint: String) -> String? {
+        cache.summary(forFingerprint: fingerprint)
+    }
+
+    /// Returns the summary to display, or `nil` when the request was cancelled or superseded by a newer one
+    /// (the caller must then leave its current state untouched). Genuine AI failures yield the local summary.
+    func summarize(
         tasks: [TaskItem],
         ideas: [IdeaItem],
         notes: [NoteItem],
-        languageStore: AppLanguageStore,
-        aiService: AIService
-    ) async -> String {
+        languageCode: String,
+        aiService: AIService,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) async -> String? {
+        latestRequestID += 1
+        let requestID = latestRequestID
+
         let fingerprint = DailyDigestFingerprint.identifier(
             tasks: tasks,
             ideas: ideas,
             notes: notes,
-            languageCode: languageStore.code
+            languageCode: languageCode,
+            calendar: calendar,
+            now: now
         )
 
-        if let cached = DailyDigestCache.summary(forFingerprint: fingerprint) {
+        if let cached = cache.summary(forFingerprint: fingerprint) {
             return cached
         }
 
-        let data = DailyDigestBuilder.make(tasks: tasks, ideas: ideas, notes: notes)
+        let data = DailyDigestBuilder.make(tasks: tasks, ideas: ideas, notes: notes, calendar: calendar, now: now)
 
         let summary: String
         if !data.hasAnything {
-            summary = localSummary(data: data, languageStore: languageStore)
+            summary = Self.localSummary(data: data, languageCode: languageCode)
         } else {
             let context = DailyDigestBuilder.structuredContext(for: data)
             do {
                 summary = try await aiService.summarizeDailyDigest(
                     structuredContext: context,
-                    languageCode: languageStore.code
+                    languageCode: languageCode
                 )
             } catch {
-                summary = localSummary(data: data, languageStore: languageStore)
+                if Task.isCancelled || AIServiceError.isCancellation(error) { return nil }
+                summary = Self.localSummary(data: data, languageCode: languageCode)
             }
         }
 
-        DailyDigestCache.store(summary, fingerprint: fingerprint)
+        // A late answer for a cancelled or superseded request must not reach the cache or the UI.
+        guard !Task.isCancelled, requestID == latestRequestID else { return nil }
+
+        cache.store(summary, fingerprint: fingerprint)
         return summary
     }
 
-    static func localSummary(data: DailyDigestData, languageStore: AppLanguageStore) -> String {
+    static func localSummary(data: DailyDigestData, languageCode: String) -> String {
         if !data.hasAnything {
-            return languageStore.localized("digest.summary.quiet")
+            return AppLanguageStore.localized("digest.summary.quiet", languageCode: languageCode)
         }
 
         let t = data.totalOpenTasksToday
@@ -164,11 +197,17 @@ enum DailyDigestSummaryService {
         let n = data.totalNotesToday
 
         if i == 0, n == 0 {
-            return languageStore.localizedFormat("digest.summary.tasks_only", Int64(t))
+            return AppLanguageStore.localizedFormat(
+                "digest.summary.tasks_only", languageCode: languageCode, arguments: [Int64(t)]
+            )
         }
         if t == 0 {
-            return languageStore.localizedFormat("digest.summary.ideas_notes_only", Int64(i + n))
+            return AppLanguageStore.localizedFormat(
+                "digest.summary.ideas_notes_only", languageCode: languageCode, arguments: [Int64(i + n)]
+            )
         }
-        return languageStore.localizedFormat("digest.summary.mixed", Int64(t), Int64(i), Int64(n))
+        return AppLanguageStore.localizedFormat(
+            "digest.summary.mixed", languageCode: languageCode, arguments: [Int64(t), Int64(i), Int64(n)]
+        )
     }
 }

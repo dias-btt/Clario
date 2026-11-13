@@ -4,6 +4,7 @@ import SwiftUI
 struct TasksScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.aiService) private var aiService
+    @Environment(\.scenePhase) private var scenePhase
     @Bindable private var languageStore = AppLanguageStore.shared
     @Query(sort: \TaskItem.createdAt, order: .reverse) private var tasks: [TaskItem]
     @Query(sort: \IdeaItem.createdAt, order: .reverse) private var ideas: [IdeaItem]
@@ -11,6 +12,9 @@ struct TasksScreen: View {
 
     @State private var selectedFilter: TaskListFilter = .all
     @State private var digestSummaryText: String?
+    @State private var digestService = DailyDigestSummaryService()
+    /// Reference time for "today". Refreshed at midnight, on time-zone/clock changes, and when the app becomes active.
+    @State private var digestNow = Date.now
 
     private var filteredTasks: [TaskItem] {
         switch selectedFilter {
@@ -40,11 +44,11 @@ struct TasksScreen: View {
     }
 
     private var digestData: DailyDigestData {
-        DailyDigestBuilder.make(tasks: tasks, ideas: ideas, notes: notes)
+        DailyDigestBuilder.make(tasks: tasks, ideas: ideas, notes: notes, now: digestNow)
     }
 
     private var digestSummary: String {
-        digestSummaryText ?? DailyDigestSummaryService.localSummary(data: digestData, languageStore: languageStore)
+        digestSummaryText ?? DailyDigestSummaryService.localSummary(data: digestData, languageCode: languageStore.code)
     }
 
     private var digestSpotlightTasks: [TaskItem] {
@@ -57,16 +61,17 @@ struct TasksScreen: View {
             tasks: tasks,
             ideas: ideas,
             notes: notes,
-            languageCode: languageStore.code
+            languageCode: languageStore.code,
+            now: digestNow
         )
     }
 
     private func hydrateDigestFromCache() {
-        if let cached = DailyDigestCache.summary(forFingerprint: digestTaskIdentifier) {
-            digestSummaryText = cached
-        } else {
-            digestSummaryText = nil
-        }
+        digestSummaryText = digestService.cachedSummary(forFingerprint: digestTaskIdentifier)
+    }
+
+    private func refreshDigestDay() {
+        digestNow = .now
     }
 
     var body: some View {
@@ -111,13 +116,24 @@ struct TasksScreen: View {
         .onAppear { hydrateDigestFromCache() }
         .onChange(of: digestTaskIdentifier) { _, _ in hydrateDigestFromCache() }
         .task(id: digestTaskIdentifier) {
-            digestSummaryText = await DailyDigestSummaryService.summarize(
+            // `nil` means this request was cancelled or superseded; keep whatever newer state is shown.
+            if let summary = await digestService.summarize(
                 tasks: tasks,
                 ideas: ideas,
                 notes: notes,
-                languageStore: languageStore,
-                aiService: aiService
-            )
+                languageCode: languageStore.code,
+                aiService: aiService,
+                now: digestNow
+            ) {
+                digestSummaryText = summary
+            }
+        }
+        // Posted on the main thread at midnight and on time-zone / clock changes.
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+            refreshDigestDay()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { refreshDigestDay() }
         }
         .animation(.easeOut(duration: 0.28), value: digestData)
     }
