@@ -7,6 +7,7 @@
 "accessibility.new_capture" = "New capture";
 "accessibility.language_menu" = "Choose language";
 "button.close" = "Close";
+"button.ok" = "OK";
 
 /* Tasks */
 "tasks.screen.title" = "Tasks";
@@ -97,6 +98,8 @@
 "preview.discard" = "Discard";
 "preview.delete" = "Delete";
 "preview.empty" = "Nothing to review yet.";
+"preview.save_error.title" = "Couldn't save";
+"preview.save_error.message" = "Your capture was not saved and nothing was lost. Please try again.\n\n%@";
 
 /* Fatal errors (dev) */
 "fatalerror.model_container" = "Could not create ModelContainer: %@";

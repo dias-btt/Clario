@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		C1A7E57000000000000000AB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F572BBFF2F6C680E008ADA73 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F572BC062F6C680E008ADA73;
+			remoteInfo = Clario;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		C1A7E57000000000000000A1 /* ClarioTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClarioTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F572BC072F6C680E008ADA73 /* Clario.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clario.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -29,10 +40,22 @@
 			path = Clario;
 			sourceTree = "<group>";
 		};
+		C1A7E57000000000000000A2 /* ClarioTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ClarioTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		F572BC042F6C680E008ADA73 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1A7E57000000000000000A5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				F572BC092F6C680E008ADA73 /* Clario */,
+				C1A7E57000000000000000A2 /* ClarioTests */,
 				F572BC082F6C680E008ADA73 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				F572BC072F6C680E008ADA73 /* Clario.app */,
+				C1A7E57000000000000000A1 /* ClarioTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,6 +108,29 @@
 			productReference = F572BC072F6C680E008ADA73 /* Clario.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C1A7E57000000000000000A3 /* ClarioTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C1A7E57000000000000000A7 /* Build configuration list for PBXNativeTarget "ClarioTests" */;
+			buildPhases = (
+				C1A7E57000000000000000A4 /* Sources */,
+				C1A7E57000000000000000A5 /* Frameworks */,
+				C1A7E57000000000000000A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C1A7E57000000000000000AA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C1A7E57000000000000000A2 /* ClarioTests */,
+			);
+			name = ClarioTests;
+			packageProductDependencies = (
+			);
+			productName = ClarioTests;
+			productReference = C1A7E57000000000000000A1 /* ClarioTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -95,6 +143,10 @@
 				TargetAttributes = {
 					F572BC062F6C680E008ADA73 = {
 						CreatedOnToolsVersion = 26.1.1;
+					};
+					C1A7E57000000000000000A3 = {
+						CreatedOnToolsVersion = 26.1.1;
+						TestTargetID = F572BC062F6C680E008ADA73;
 					};
 				};
 			};
@@ -115,12 +167,20 @@
 			projectRoot = "";
 			targets = (
 				F572BC062F6C680E008ADA73 /* Clario */,
+				C1A7E57000000000000000A3 /* ClarioTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		F572BC052F6C680E008ADA73 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C1A7E57000000000000000A6 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -137,7 +197,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C1A7E57000000000000000A4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C1A7E57000000000000000AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F572BC062F6C680E008ADA73 /* Clario */;
+			targetProxy = C1A7E57000000000000000AB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		F572BC122F6C680F008ADA73 /* Debug */ = {
@@ -327,6 +402,50 @@
 			};
 			name = Release;
 		};
+		C1A7E57000000000000000A8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TH28H2DHB8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dias.saiynov-nu.edu.kz.ClarioTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clario.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clario";
+			};
+			name = Debug;
+		};
+		C1A7E57000000000000000A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = TH28H2DHB8;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dias.saiynov-nu.edu.kz.ClarioTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Clario.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Clario";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -344,6 +463,15 @@
 			buildConfigurations = (
 				F572BC152F6C680F008ADA73 /* Debug */,
 				F572BC162F6C680F008ADA73 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C1A7E57000000000000000A7 /* Build configuration list for PBXNativeTarget "ClarioTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1A7E57000000000000000A8 /* Debug */,
+				C1A7E57000000000000000A9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

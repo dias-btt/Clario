@@ -19,19 +19,23 @@ struct CaptureDraft: Identifiable, Sendable {
     var tasks: [Item]
     var ideas: [Item]
     var notes: [Item]
+    /// The (trimmed) input text this draft was generated from.
+    let sourceText: String
 
-    init(id: UUID = UUID(), tasks: [Item], ideas: [Item], notes: [Item]) {
+    init(id: UUID = UUID(), tasks: [Item], ideas: [Item], notes: [Item], sourceText: String = "") {
         self.id = id
         self.tasks = tasks
         self.ideas = ideas
         self.notes = notes
+        self.sourceText = sourceText
     }
 
-    init(result: AIResult) {
+    init(result: AIResult, sourceText: String = "") {
         self.init(
             tasks: result.tasks.map { Item(text: $0.title, tag: $0.tag) },
             ideas: result.ideas.map { Item(text: $0) },
-            notes: result.notes.map { Item(text: $0) }
+            notes: result.notes.map { Item(text: $0) },
+            sourceText: sourceText
         )
     }
 

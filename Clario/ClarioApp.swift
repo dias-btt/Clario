@@ -12,6 +12,10 @@ import SwiftData
 struct ClarioApp: App {
     private let aiService: AIService = OpenAIService.live()
 
+    private static var isHostingUnitTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             TaskItem.self,
@@ -29,8 +33,14 @@ struct ClarioApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(viewModel: BrainCaptureViewModel(aiService: aiService))
-                .environment(\.aiService, aiService)
+            if Self.isHostingUnitTests {
+                // Unit tests use their own in-memory containers and mock AI services;
+                // don't start the real UI (which can trigger network AI calls) in the test host.
+                Color.clear
+            } else {
+                ContentView(viewModel: BrainCaptureViewModel(aiService: aiService))
+                    .environment(\.aiService, aiService)
+            }
         }
         .modelContainer(sharedModelContainer)
     }
